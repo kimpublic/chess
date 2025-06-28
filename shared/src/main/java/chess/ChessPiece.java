@@ -280,6 +280,7 @@ public class ChessPiece {
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (!(o instanceof ChessPiece that)) {
             return false;
         }

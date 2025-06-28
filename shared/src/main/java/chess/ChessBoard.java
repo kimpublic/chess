@@ -57,10 +57,37 @@ public class ChessBoard {
 
     public void resetBoard() {
         board = new ChessPiece[8][8];
+
+        ChessPiece.PieceType[] majorPieceList = {
+                ChessPiece.PieceType.ROOK,
+                ChessPiece.PieceType.KNIGHT,
+                ChessPiece.PieceType.BISHOP,
+                ChessPiece.PieceType.QUEEN,
+                ChessPiece.PieceType.KING,
+                ChessPiece.PieceType.BISHOP,
+                ChessPiece.PieceType.KNIGHT,
+                ChessPiece.PieceType.ROOK
+        };
+
+        for (int col = 1; col <= 8; col++) {
+            // 흰색 메이저 피스 (1행)
+            addPiece(new ChessPosition(1, col),
+                    new ChessPiece(ChessGame.TeamColor.WHITE, majorPieceList[col - 1]));
+            // 흰색 폰 (2행)
+            addPiece(new ChessPosition(2, col),
+                    new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN));
+            // 검은색 폰 (7행)
+            addPiece(new ChessPosition(7, col),
+                    new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
+            // 검은색 메이저 피스 (8행)
+            addPiece(new ChessPosition(8, col),
+                    new ChessPiece(ChessGame.TeamColor.BLACK, majorPieceList[col - 1]));
+        }
     }
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
