@@ -59,16 +59,219 @@ public class ChessPiece {
 
         if (type == PieceType.KING) {
 
+            int[][] directions = {
+                    {1, -1},
+                    {1, 1},
+                    {-1, 1},
+                    {-1, -1},
+                    {-1, 0},
+                    {1, 0},
+                    {0, -1},
+                    {0, 1}
+            };
+
+            for (int[] direction : directions) {
+                int row = myPosition.getRow() + direction[0];
+                int col = myPosition.getColumn() + direction[1];
+
+                ChessPosition nextPosition = new ChessPosition(row, col);
+
+                if (board.isValidPosition(nextPosition)) {
+
+                    ChessPiece pieceAtNextPosition = board.getPiece(nextPosition);
+
+                    if (pieceAtNextPosition == null || pieceAtNextPosition.getTeamColor() != pieceColor) {
+                        validMoves.add(new ChessMove(myPosition, nextPosition, null));
+                    }
+                }
+            }
+
         } else if (type == PieceType.QUEEN) {
 
+            int[][] directions = {
+                    {1, -1},
+                    {1, 1},
+                    {-1, 1},
+                    {-1, -1},
+                    {-1, 0},
+                    {1, 0},
+                    {0, -1},
+                    {0, 1}
+            };
+
+            for (int[] direction : directions) {
+                int row = myPosition.getRow();
+                int col = myPosition.getColumn();
+
+                while (true) {
+                    row += direction[0];
+                    col += direction[1];
+
+                    ChessPosition nextPosition = new ChessPosition(row, col);
+                    /* 다음 칸이 보드판 밖이면 멈춤 */
+                    if (!board.isValidPosition(nextPosition)) break;
+
+                    ChessPiece pieceAtNextPosition = board.getPiece(nextPosition);
+                    /* 다른 말이 없으면 유효, 다른 말 있으면 상대말이면 이동 가능, 다만 거기서 멈춰야 함 */
+                    if (pieceAtNextPosition == null) {
+                        validMoves.add(new ChessMove(myPosition, nextPosition, null));
+                    } else {
+                        if (pieceAtNextPosition.getTeamColor() != pieceColor) {
+                            validMoves.add(new ChessMove(myPosition, nextPosition, null));
+                        }
+                        break;
+                    }
+                }
+            }
+
         } else if (type == PieceType.BISHOP) {
+            int[][] directions = {
+                    {1, -1},
+                    {1, 1},
+                    {-1, 1},
+                    {-1, -1}
+            };
+
+            for (int[] direction : directions) {
+                int row = myPosition.getRow();
+                int col = myPosition.getColumn();
+
+                while (true) {
+                    row += direction[0];
+                    col += direction[1];
+
+                    ChessPosition nextPosition = new ChessPosition(row, col);
+                    /* 다음 칸이 보드판 밖이면 멈춤 */
+                    if (!board.isValidPosition(nextPosition)) break;
+
+                    ChessPiece pieceAtNextPosition = board.getPiece(nextPosition);
+                    /* 다른 말이 없으면 유효, 다른 말 있으면 상대말이면 이동 가능, 다만 거기서 멈춰야 함 */
+                    if (pieceAtNextPosition == null) {
+                        validMoves.add(new ChessMove(myPosition, nextPosition, null));
+                    } else {
+                        if (pieceAtNextPosition.getTeamColor() != pieceColor) {
+                            validMoves.add(new ChessMove(myPosition, nextPosition, null));
+                        }
+                        break;
+                    }
+                }
+            }
 
         } else if (type == PieceType.KNIGHT) {
+            int[][] directions = {
+                    {1, -2},
+                    {2, -1},
+                    {2, 1},
+                    {1, 2},
+                    {-1, 2},
+                    {-2, 1},
+                    {-2, -1},
+                    {-1, -2}
+            };
+
+            for (int[] direction : directions) {
+                int row = myPosition.getRow() + direction[0];
+                int col = myPosition.getColumn() + direction[1];
+
+                ChessPosition nextPosition = new ChessPosition(row, col);
+
+                if (board.isValidPosition(nextPosition)) {
+
+                    ChessPiece pieceAtNextPosition = board.getPiece(nextPosition);
+
+                    if (pieceAtNextPosition == null || pieceAtNextPosition.getTeamColor() != pieceColor) {
+                        validMoves.add(new ChessMove(myPosition, nextPosition, null));
+                    }
+                }
+            }
 
         } else if (type == PieceType.ROOK) {
 
-        } else if (type == PieceType.PAWN) {
+            int[][] directions = {
+                    {-1, 0},
+                    {1, 0},
+                    {0, -1},
+                    {0, 1}
+            };
 
+            for (int[] direction : directions) {
+                int row = myPosition.getRow();
+                int col = myPosition.getColumn();
+
+                while (true) {
+                    row += direction[0];
+                    col += direction[1];
+
+                    ChessPosition nextPosition = new ChessPosition(row, col);
+                    /* 다음 칸이 보드판 밖이면 멈춤 */
+                    if (!board.isValidPosition(nextPosition)) break;
+
+                    ChessPiece pieceAtNextPosition = board.getPiece(nextPosition);
+                    /* 다른 말이 없으면 유효, 다른 말 있으면 상대말이면 이동 가능, 다만 거기서 멈춰야 함 */
+                    if (pieceAtNextPosition == null) {
+                        validMoves.add(new ChessMove(myPosition, nextPosition, null));
+                    } else {
+                        if (pieceAtNextPosition.getTeamColor() != pieceColor) {
+                            validMoves.add(new ChessMove(myPosition, nextPosition, null));
+                        }
+                        break;
+                    }
+                }
+            }
+
+
+        } else if (type == PieceType.PAWN) {
+            int direction;
+            int startRow;
+            /* 여기서 ChessGame.TeamColor.WHITE는 enum임 비교하기 위해 끌고오는 것일 뿐. */
+            if (pieceColor == ChessGame.TeamColor.WHITE) {
+                direction = 1;
+            } else {
+                direction = -1;
+            }
+            if (pieceColor == ChessGame.TeamColor.WHITE) {
+                startRow = 2;
+            } else {
+                startRow = 7;
+            }
+
+            int row = myPosition.getRow();
+            int col = myPosition.getColumn();
+
+            /* checking 한 칸 앞 */
+            ChessPosition oneStep = new ChessPosition(row + direction, col);
+
+            if ( board.getPiece(oneStep) == null) {
+                validMoves.add(new ChessMove(myPosition, oneStep, null));
+
+                /* Checking 두 칸 앞 */
+                ChessPosition twoStep = new ChessPosition(row + 2 * direction, col);
+
+                if (row == startRow && board.getPiece(twoStep) == null) {
+                    validMoves.add(new ChessMove(myPosition, twoStep, null));
+                }
+
+            }
+
+            /* Checking 대각선에 적 있는지 */
+
+            ChessPosition upLeft = new ChessPosition(row + direction, col - 1);
+
+            if (board.isValidPosition(upLeft)) {
+                ChessPiece opponent = board.getPiece(upLeft);
+                if (opponent != null && opponent.getTeamColor() != pieceColor) {
+                    validMoves.add(new ChessMove(myPosition, upLeft, null));
+                }
+            }
+
+            ChessPosition upRight = new ChessPosition(row + direction, col + 1);
+
+            if (board.isValidPosition(upRight)) {
+                ChessPiece opponent = board.getPiece(upRight);
+                if (opponent != null && opponent.getTeamColor() != pieceColor) {
+                    validMoves.add(new ChessMove(myPosition, upRight, null));
+                }
+            }
         }
 
         return validMoves;
