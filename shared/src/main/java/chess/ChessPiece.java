@@ -223,16 +223,17 @@ public class ChessPiece {
         } else if (type == PieceType.PAWN) {
             int direction;
             int startRow;
+            int finalRow;
+
             /* 여기서 ChessGame.TeamColor.WHITE는 enum임 비교하기 위해 끌고오는 것일 뿐. */
             if (pieceColor == ChessGame.TeamColor.WHITE) {
                 direction = 1;
+                startRow = 2;
+                finalRow = 8;
             } else {
                 direction = -1;
-            }
-            if (pieceColor == ChessGame.TeamColor.WHITE) {
-                startRow = 2;
-            } else {
                 startRow = 7;
+                finalRow = 1;
             }
 
             int row = myPosition.getRow();
@@ -241,8 +242,17 @@ public class ChessPiece {
             /* checking 한 칸 앞 */
             ChessPosition oneStep = new ChessPosition(row + direction, col);
 
-            if ( board.getPiece(oneStep) == null) {
-                validMoves.add(new ChessMove(myPosition, oneStep, null));
+            if (board.getPiece(oneStep) == null) {
+                /* promotion check, but refactoring needed for later */
+                if (oneStep.getRow() == finalRow) {
+                    for (ChessPiece.PieceType promotionType : ChessPiece.PieceType.values()) {
+                        if (promotionType != ChessPiece.PieceType.KING && promotionType != ChessPiece.PieceType.PAWN){
+                            validMoves.add(new ChessMove(myPosition, oneStep, promotionType));
+                        }
+                    }
+                } else {
+                    validMoves.add(new ChessMove(myPosition, oneStep, null));
+                }
 
                 /* Checking 두 칸 앞 */
                 ChessPosition twoStep = new ChessPosition(row + 2 * direction, col);
@@ -260,7 +270,15 @@ public class ChessPiece {
             if (board.isValidPosition(upLeft)) {
                 ChessPiece opponent = board.getPiece(upLeft);
                 if (opponent != null && opponent.getTeamColor() != pieceColor) {
-                    validMoves.add(new ChessMove(myPosition, upLeft, null));
+                    if (upLeft.getRow() == finalRow) {
+                        for (ChessPiece.PieceType promotionType : ChessPiece.PieceType.values()) {
+                            if (promotionType != ChessPiece.PieceType.KING && promotionType != ChessPiece.PieceType.PAWN) {
+                                validMoves.add(new ChessMove(myPosition, upLeft, promotionType));
+                            }
+                        }
+                    } else {
+                        validMoves.add(new ChessMove(myPosition, upLeft, null));
+                    }
                 }
             }
 
@@ -269,7 +287,15 @@ public class ChessPiece {
             if (board.isValidPosition(upRight)) {
                 ChessPiece opponent = board.getPiece(upRight);
                 if (opponent != null && opponent.getTeamColor() != pieceColor) {
-                    validMoves.add(new ChessMove(myPosition, upRight, null));
+                    if (upRight.getRow() == finalRow) {
+                        for (ChessPiece.PieceType promotionType : ChessPiece.PieceType.values()) {
+                            if (promotionType != ChessPiece.PieceType.KING && promotionType != ChessPiece.PieceType.PAWN) {
+                                validMoves.add(new ChessMove(myPosition, upRight, promotionType));
+                            }
+                        }
+                    } else {
+                        validMoves.add(new ChessMove(myPosition, upRight, null));
+                    }
                 }
             }
         }
