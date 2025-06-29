@@ -56,7 +56,7 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> validMoves = new ArrayList<>();
-
+        /* 킹이랑 퀸은 비숍과 룩을 합친 비슷한 형태를 사용하지만, 킹은 한칸만 가도 되어서 while (true)가 필요없고 퀸은 쭉 가야해서 while (true)가 필요함 */
         if (type == PieceType.KING) {
 
             int[][] directions = {
