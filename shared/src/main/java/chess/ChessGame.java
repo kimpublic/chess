@@ -77,8 +77,8 @@ public class ChessGame {
             }
 
             return validMoves;
+        } else { return null;
         }
-
     }
 
     private boolean checkSimulation(ChessBoard board, TeamColor teamColor) {
@@ -88,8 +88,19 @@ public class ChessGame {
                 ChessPiece searchedPiece = board.getPiece(searchPosition);
                 if (searchedPiece != null && searchedPiece.getPieceType() == ChessPiece.PieceType.KING && searchedPiece.getTeamColor() == teamColor) {
                     ChessPosition kingPosition = new ChessPosition(row, col);
+                    if (canKingBeAttacked(board, kingPosition, teamColor))
+                    break;
                 }
             }
+        }
+        return false;
+    }
+
+    private boolean canKingBeAttacked(ChessBoard board, ChessPosition kingPosition, TeamColor currentTeamColor) {
+        if (currentTeamColor == TeamColor.WHITE) {
+            TeamColor opponentColor = TeamColor.BLACK;
+        } else {
+            TeamColor opponentColor = TeamColor.WHITE;
         }
 
         return true;
