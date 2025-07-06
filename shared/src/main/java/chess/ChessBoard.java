@@ -85,6 +85,24 @@ public class ChessBoard {
         }
     }
 
+    public ChessBoard simulationBoard() {
+        ChessBoard simulationBoard = new ChessBoard();
+
+        for (int row = 1; row <= 8; row ++) {
+            for (int col = 1; col <= 8; col ++) {
+                ChessPosition position = new ChessPosition(row, col);
+                ChessPiece piece = this.getPiece(position);
+
+                if (piece != null) {
+                    ChessPiece newPiece = new ChessPiece(piece.getTeamColor(), piece.getPieceType());
+                    simulationBoard.addPiece(position, newPiece);
+                }
+            }
+        }
+
+        return simulationBoard;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
