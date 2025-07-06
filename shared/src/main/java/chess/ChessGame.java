@@ -56,18 +56,43 @@ public class ChessGame {
         ChessPiece piece = board.getPiece(startPosition);
         if (piece == null) {
             return null;
-        } else {
+        } else if (currentTurnTeam == piece.getTeamColor()) {
             Collection<ChessMove> possibleMoves = piece.pieceMoves(board, startPosition);
 
             Collection<ChessMove> validMoves = new ArrayList<>();
 
             for (ChessMove move : possibleMoves) {
                 ChessBoard simulationBoard = board.simulationBoard();
+                ChessPiece targetPiece = simulationBoard.getPiece(startPosition);
+
+                simulationBoard.addPiece(move.getEndPosition(), targetPiece);
+                simulationBoard.addPiece(startPosition, null);
+
+
+
+                if (!checkSimulation(simulationBoard, currentTurnTeam)) {
+
+                }
+
             }
 
             return validMoves;
         }
 
+    }
+
+    private boolean checkSimulation(ChessBoard board, TeamColor teamColor) {
+        for (int row = 1; row <= 8; row ++) {
+            for (int col = 1; col <= 8; col ++) {
+                ChessPosition searchPosition = new ChessPosition(row, col);
+                ChessPiece searchedPiece = board.getPiece(searchPosition);
+                if (searchedPiece != null && searchedPiece.getPieceType() == ChessPiece.PieceType.KING && searchedPiece.getTeamColor() == teamColor) {
+                    ChessPosition kingPosition = new ChessPosition(row, col);
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
