@@ -71,7 +71,7 @@ public class ChessGame {
 
 
                 if (!checkSimulation(simulationBoard, currentTurnTeam)) {
-
+                    validMoves.add(move);
                 }
 
             }
@@ -88,7 +88,9 @@ public class ChessGame {
                 ChessPiece searchedPiece = board.getPiece(searchPosition);
                 if (searchedPiece != null && searchedPiece.getPieceType() == ChessPiece.PieceType.KING && searchedPiece.getTeamColor() == teamColor) {
                     ChessPosition kingPosition = new ChessPosition(row, col);
-                    if (canKingBeAttacked(board, kingPosition, teamColor))
+                    if (canKingBeAttacked(board, kingPosition, teamColor)) {
+                        return true;
+                    }
                     break;
                 }
             }
@@ -97,13 +99,31 @@ public class ChessGame {
     }
 
     private boolean canKingBeAttacked(ChessBoard board, ChessPosition kingPosition, TeamColor currentTeamColor) {
+        TeamColor opponentColor;
+
         if (currentTeamColor == TeamColor.WHITE) {
-            TeamColor opponentColor = TeamColor.BLACK;
+            opponentColor = TeamColor.BLACK;
         } else {
-            TeamColor opponentColor = TeamColor.WHITE;
+            opponentColor = TeamColor.WHITE;
         }
 
-        return true;
+        for (int row = 1; row <= 8; row ++) {
+            for (int col = 1; col <= 8; col ++) {
+                ChessPosition opponentPosition = new ChessPosition(row, col);
+                ChessPiece opponentPiece = board.getPiece(opponentPosition);
+
+                if (opponentPiece != null && opponentPiece.getTeamColor() == opponentColor) {
+                    Collection<ChessMove> opponentMoves = opponentPiece.pieceMoves(board, opponentPosition);
+
+                    for (ChessMove move : opponentMoves) {
+                        if (move.getEndPosition().equals(kingPosition)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**
