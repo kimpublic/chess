@@ -87,11 +87,9 @@ public class ChessGame {
                 ChessPosition searchPosition = new ChessPosition(row, col);
                 ChessPiece searchedPiece = board.getPiece(searchPosition);
                 if (searchedPiece != null && searchedPiece.getPieceType() == ChessPiece.PieceType.KING && searchedPiece.getTeamColor() == teamColor) {
-                    ChessPosition kingPosition = new ChessPosition(row, col);
-                    if (canKingBeAttacked(board, kingPosition, teamColor)) {
+                    if (canKingBeAttacked(board, searchPosition, teamColor)) {
                         return true;
                     }
-                    break;
                 }
             }
         }
@@ -143,7 +141,18 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        for (int row = 1; row <= 8; row ++) {
+            for (int col = 1; col <= 8; col ++) {
+                ChessPosition searchPosition = new ChessPosition(row, col);
+                ChessPiece searchedPiece = board.getPiece(searchPosition);
+                if (searchedPiece != null && searchedPiece.getPieceType() == ChessPiece.PieceType.KING && searchedPiece.getTeamColor() == teamColor) {
+                    if (canKingBeAttacked(board, searchPosition, teamColor)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**
