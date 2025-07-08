@@ -95,11 +95,7 @@ public class ChessGame {
     private boolean canKingBeAttacked(ChessBoard board, ChessPosition kingPosition, TeamColor currentTeamColor) {
         TeamColor opponentColor;
 
-        if (currentTeamColor == TeamColor.WHITE) {
-            opponentColor = TeamColor.BLACK;
-        } else {
-            opponentColor = TeamColor.WHITE;
-        }
+        opponentColor = (currentTeamColor == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
 
         for (int row = 1; row <= 8; row ++) {
             for (int col = 1; col <= 8; col ++) {
