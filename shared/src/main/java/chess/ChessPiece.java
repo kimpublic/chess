@@ -15,10 +15,23 @@ public class ChessPiece {
     private final ChessGame.TeamColor pieceColor;
     private final ChessPiece.PieceType type;
 
+    /* 캐슬링 */
+    private boolean hasMoved = false;
+
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor = pieceColor;
         this.type = type;
+    }
+
+    /* 캐슬링 */
+    public boolean hasMoved() {
+        return hasMoved;
+    }
+
+    /* 캐슬링 */
+    public void markMoved() {
+        this.hasMoved = true;
     }
 
     /**

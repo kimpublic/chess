@@ -15,6 +15,10 @@ public class ChessGame {
     private ChessBoard board;
     private TeamColor currentTurnTeam;
 
+    /* 앙파상 */
+    private ChessPosition lastDoublePawn = null;
+
+
     public ChessGame() {
         this.board = new ChessBoard();
         this.board.resetBoard();
@@ -73,6 +77,70 @@ public class ChessGame {
                     validMoves.add(move);
                 }
 
+            }
+
+            /* 캐슬링 */
+            if (piece.getPieceType() == ChessPiece.PieceType.KING && !piece.hasMoved() && !checkSimulation(board, piece.getTeamColor())) {
+                int row = (piece.getTeamColor() == TeamColor.WHITE) ? 1 : 8;
+
+                ChessPosition rookRight = new ChessPosition(row, 8);
+                ChessPiece rookPieceRight = board.getPiece(rookRight);
+                if (rookPieceRight != null && rookPieceRight.getPieceType() == ChessPiece.PieceType.ROOK && !rookPieceRight.hasMoved() && board.getPiece(new ChessPosition(row, 6)) == null && board.getPiece(new ChessPosition(row, 7)) == null) {
+                    ChessBoard simulationForCol6 = board.simulationBoard();
+                    ChessPiece kingForRightSimulation = simulationForCol6.getPiece(startPosition);
+                    simulationForCol6.addPiece(new ChessPosition(row, 6), kingForRightSimulation);
+                    simulationForCol6.addPiece(startPosition, null);
+                    if(!checkSimulation(simulationForCol6, piece.getTeamColor())) {
+                        ChessBoard simulationForCol7 = simulationForCol6.simulationBoard();
+                        simulationForCol7.addPiece(new ChessPosition(row, 7), kingForRightSimulation);
+                        simulationForCol7.addPiece(new ChessPosition(row, 6), null);
+                        if (!checkSimulation(simulationForCol7, piece.getTeamColor())) {
+                            validMoves.add(new ChessMove(startPosition, new ChessPosition(row, 7), null));
+                        }
+                    }
+                }
+
+                ChessPosition rookLeft = new ChessPosition(row, 1);
+                ChessPiece rookPieceLeft = board.getPiece(rookLeft);
+
+                if (rookPieceLeft != null && rookPieceLeft.getPieceType() == ChessPiece.PieceType.ROOK && !rookPieceLeft.hasMoved() && board.getPiece(new ChessPosition(row, 2)) == null && board.getPiece(new ChessPosition(row, 3)) == null && board.getPiece(new ChessPosition(row, 4)) == null) {
+                    ChessBoard simulationForCol4 = board.simulationBoard();
+                    ChessPiece kingForLeftSimulation = simulationForCol4.getPiece(startPosition);
+                    simulationForCol4.addPiece(new ChessPosition(row, 4), kingForLeftSimulation);
+                    simulationForCol4.addPiece(startPosition, null);
+                    if (!checkSimulation(simulationForCol4, piece.getTeamColor())) {
+                        ChessBoard simulationForCol3 = simulationForCol4.simulationBoard();
+                        simulationForCol3.addPiece(new ChessPosition(row, 3), kingForLeftSimulation);
+                        simulationForCol3.addPiece(new ChessPosition(row, 4), null);
+                        if (!checkSimulation(simulationForCol3, piece.getTeamColor())) {
+                            validMoves.add(new ChessMove(startPosition, new ChessPosition(row, 3), null));
+                        }
+                    }
+                }
+            }
+
+            if (piece.getPieceType() == ChessPiece.PieceType.PAWN && lastDoublePawn != null) {
+                int direction = (piece.getTeamColor() == TeamColor.WHITE) ? 1 : -1;
+                int startRow = startPosition.getRow();
+                int thePawn = (piece.getTeamColor() == TeamColor.WHITE) ? 5 : 4;
+
+                if ( startRow == thePawn && Math.abs(lastDoublePawn.getColumn() - startPosition.getColumn()) == 1) {
+
+                    ChessPosition capturePosition = new ChessPosition(startRow + direction, lastDoublePawn.getColumn());
+
+                    if (board.isValidPosition(capturePosition) && board.getPiece(capturePosition) == null) {
+                        ChessBoard simulation = board.simulationBoard();
+
+                        ChessPiece pawnForSimulation = simulation.getPiece(startPosition);
+                        simulation.addPiece(capturePosition, pawnForSimulation);
+                        simulation.addPiece(startPosition, null);
+                        simulation.addPiece(lastDoublePawn, null);
+
+                        if (!checkSimulation(simulation, piece.getTeamColor())) {
+                            validMoves.add(new ChessMove(startPosition, capturePosition, null));
+                        }
+                    }
+                }
             }
 
             return validMoves;
@@ -137,6 +205,32 @@ public class ChessGame {
             throw new InvalidMoveException();
         }
 
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && Math.abs(end.getColumn() - start.getColumn()) == 1 && board.getPiece(end) == null && lastDoublePawn != null && lastDoublePawn.getRow() == start.getRow() && lastDoublePawn.getColumn() == end.getColumn()) {
+            board.addPiece(lastDoublePawn, null);
+        }
+
+        if (piece.getPieceType() == ChessPiece.PieceType.KING && Math.abs(end.getColumn() - start.getColumn()) == 2) {
+            int row = start.getRow();
+
+            if (end.getColumn() == start.getColumn() + 2) {
+                ChessPosition rookStart = new ChessPosition(row, 8);
+                ChessPosition rookEnd = new ChessPosition(row, 6);
+                ChessPiece rookPiece = board.getPiece(rookStart);
+
+                board.addPiece(rookEnd, rookPiece);
+                board.addPiece(rookStart, null);
+                if (!rookPiece.hasMoved()) rookPiece.markMoved();
+            } else if (end.getColumn() == start.getColumn() - 2) {
+                ChessPosition rookStart = new ChessPosition(row, 1);
+                ChessPosition rookEnd = new ChessPosition(row, 4);
+                ChessPiece rookPiece = board.getPiece(rookStart);
+                board.addPiece(rookEnd, rookPiece);
+                board.addPiece(rookStart, null);
+                if (!rookPiece.hasMoved()) rookPiece.markMoved();
+            }
+        }
+
+
         if (move.getPromotionPiece() != null && piece.getPieceType() == ChessPiece.PieceType.PAWN) {
             board.addPiece(end, new ChessPiece(currentTurnTeam, move.getPromotionPiece()));
         } else {
@@ -144,6 +238,16 @@ public class ChessGame {
         }
 
         board.addPiece(start, null);
+
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && Math.abs(end.getRow() - start.getRow()) == 2) {
+            lastDoublePawn = end;
+        } else {
+            lastDoublePawn = null;
+        }
+
+        if (!piece.hasMoved()) {
+            piece.markMoved();
+        }
 
         if (currentTurnTeam == TeamColor.WHITE) {
             currentTurnTeam = TeamColor.BLACK;
