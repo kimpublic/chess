@@ -17,7 +17,7 @@ public class UserServiceTest {
         service = new UserService(dataAccessObject);
     }
 
-    // 가입 테스트
+    // register 테스트
     @Test
     void registerPositive() throws DataAccessException {
         RegisterRequest request = new RegisterRequest("minjoong", "password", "minjoongKim98@naver.com");
@@ -26,7 +26,7 @@ public class UserServiceTest {
         assertNotNull(response.authToken());
     }
 
-    // 가입-잘못된 요청
+    // register-잘못된 요청
     @Test
     void registerBadRequest() {
         RegisterRequest badRegister = new RegisterRequest("","","");
@@ -35,7 +35,7 @@ public class UserServiceTest {
         });
     }
 
-    // 가입-already taken 케이스
+    // register-already taken 케이스
     @Test
     void registerAlreadyTaken() throws DataAccessException {
         RegisterRequest request = new RegisterRequest("minjoong", "password", "minjoongKim98@naver.com");
@@ -60,7 +60,7 @@ public class UserServiceTest {
         assertNotNull(loginResult.authToken());
     }
 
-    // 로그인-잘못된 요청
+    // login-잘못된 요청
     @Test
     void loginBadRequest() throws IllegalArgumentException {
         LoginRequest badLogin = new LoginRequest("","");
@@ -69,7 +69,7 @@ public class UserServiceTest {
         });
     }
 
-    // 로그인-없는 아이디
+    // login-없는 아이디
     @Test
     void loginWrongUsername() throws DataAccessException {
         LoginRequest wrongUsername = new LoginRequest("not_valid_username", "hehe");
@@ -81,7 +81,7 @@ public class UserServiceTest {
         }
     }
 
-    // 로그인-잘못된 패스워드
+    // login-잘못된 패스워드
     @Test
     void loginWrongPassword() throws DataAccessException {
         RegisterRequest registerWrongPassword = new RegisterRequest("minjoong", "valid", "minjoongkim98@naver.com");
@@ -94,6 +94,41 @@ public class UserServiceTest {
             assertEquals("unauthorized", e.getMessage());
         }
     }
+
+    // logout 테스트
+    @Test
+    void logoutPositive() throws DataAccessException {
+        RegisterRequest registerRequest = new RegisterRequest("minjoongforlogout", "password", "test@gmail.com");
+        service.register(registerRequest);
+        LoginRequest loginRequest = new LoginRequest("minjoongforlogout", "password");
+        LoginResult loginResult = service.login(loginRequest);
+        String authToken = loginResult.authToken();
+
+        LogoutRequest logoutRequest = new LogoutRequest(authToken);
+        assertDoesNotThrow(() -> service.logout(logoutRequest));
+    }
+
+    // logout-잘못된 요청
+    @Test
+    void logoutBadRequest() throws IllegalArgumentException {
+        LogoutRequest badLogout = new LogoutRequest("");
+        assertThrows(IllegalArgumentException.class, () -> {
+            service.logout(badLogout);
+        });
+    }
+
+    // logout-Unauthorized
+    @Test
+    void logoutNotValidToken() throws DataAccessException {
+        LogoutRequest logoutNotValidToken = new LogoutRequest("not-valid-token");
+        try {
+            service.logout(logoutNotValidToken);
+            fail("test failed");
+        } catch (DataAccessException e) {
+            assertEquals("unauthorized", e.getMessage());
+        }
+    }
+
 
 
 }

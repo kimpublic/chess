@@ -23,6 +23,7 @@ public class Server {
         delete("/db", new ClearHandler(clearService));
         post("/user", new RegisterHandler(userService));
         post("/session", new LoginHandler(userService));
+        delete("/session", new LogoutHandler(userService));
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
 

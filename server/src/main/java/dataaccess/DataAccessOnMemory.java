@@ -78,7 +78,10 @@ public class DataAccessOnMemory implements DataAccess {
 
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
-        throw new DataAccessException("Not implemented");
+        if (!authData.containsKey(authToken)) {
+            throw new DataAccessException("unauthorized");
+        }
+        authData.remove(authToken);
     }
 
     @Override

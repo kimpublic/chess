@@ -6,9 +6,11 @@
     <file url="file://$PROJECT_DIR$/server/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/dataaccess/DataAccessOnMemory.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/server/LoginHandler.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/server/LogoutHandler.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/server/RegisterHandler.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/service/LoginRequest.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/service/LoginResult.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/service/LogoutRequest.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/service/RegisterRequest.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/service/RegisterResult.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/service/UserService.java" charset="UTF-8" />

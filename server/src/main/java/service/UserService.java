@@ -54,4 +54,11 @@ public class UserService {
 
         return loginRequestResult;
     }
+
+    public void logout(LogoutRequest request) throws IllegalArgumentException, DataAccessException {
+        if (request.authToken() == null || request.authToken().isBlank()) {
+            throw new IllegalArgumentException("bad request");
+        }
+        dataAccessObject.deleteAuth(request.authToken());
+    }
 }
