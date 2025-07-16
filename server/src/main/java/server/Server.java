@@ -16,11 +16,6 @@ public class Server {
 
         staticFiles.location("/web");
 
-        get("/", (req, res) -> {
-            res.redirect("/index.html");
-            return null;
-        });
-
         var dataAccessObject = new DataAccessOnMemory();
         var clearService = new ClearService(dataAccessObject);
         var userService = new UserService(dataAccessObject);

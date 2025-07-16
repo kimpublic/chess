@@ -62,7 +62,7 @@ public class GameServiceTest {
         assertEquals(2, createGameResult2.gameID());
 
         ListGamesResult gameList = gameService.listGames(new ListGamesRequest(authToken));
-        List<GameInfo> gameInfoList = gameList.gameInfoList();
+        List<GameInfo> gameInfoList = gameList.games();
 
         assertEquals(2, gameInfoList.size());
     }
@@ -74,7 +74,7 @@ public class GameServiceTest {
         String authToken = userService.login(new LoginRequest("minjoong", "password")).authToken();
 
         ListGamesResult gameList = gameService.listGames((new ListGamesRequest(authToken)));
-        assertTrue(gameList.gameInfoList().isEmpty());
+        assertTrue(gameList.games().isEmpty());
     }
 
     // listGames-잘못된 요청
