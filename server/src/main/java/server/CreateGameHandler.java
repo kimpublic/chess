@@ -29,8 +29,13 @@ public class CreateGameHandler implements Route {
     public Object handle(Request req, Response res) {
         try {
             String authToken = req.headers("authorization");
-            JsonObject json = gson.fromJson(req.body(), JsonObject.class);
-            String gameName = json.get("gameName").getAsString();
+
+            Map<?,?> body = gson.fromJson(req.body(), Map.class);
+            String gameName = (String) body.get("gameName");
+
+            if (authToken == null || authToken.isBlank() || gameName == null || gameName.isBlank()) {
+                throw new IllegalArgumentException("bad request");
+            }
 
             CreateGameRequest request = new CreateGameRequest(authToken, gameName);
             CreateGameResult result = gameService.createGame(request);

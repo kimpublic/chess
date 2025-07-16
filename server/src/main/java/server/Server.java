@@ -14,7 +14,12 @@ public class Server {
     public int run(int portNumber) {
         port(portNumber);
 
-        staticFiles.location("web");
+        staticFiles.location("/web");
+
+        get("/", (req, res) -> {
+            res.redirect("/index.html");
+            return null;
+        });
 
         var dataAccessObject = new DataAccessOnMemory();
         var clearService = new ClearService(dataAccessObject);

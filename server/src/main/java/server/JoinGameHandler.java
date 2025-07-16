@@ -26,11 +26,24 @@ public class JoinGameHandler implements Route {
         try {
             String authToken = req.headers("authorization");
 
+            if (authToken == null || authToken.isBlank()) {
+                throw new IllegalArgumentException("bad request");
+            }
 
             Map<?,?> body = gson.fromJson(req.body(), Map.class);
-            String playerColor = (String) body.get("color");
-            Number id = (Number) body.get("gameID");
-            int gameID = id == null ? -1 : id.intValue();
+
+            Object colorObj = body.get("playerColor");
+            if (!(colorObj instanceof String) || ((String)colorObj).isBlank()) {
+                throw new IllegalArgumentException("bad request");
+            }
+            String playerColor = (String) colorObj;
+
+            Object idObj = body.get("gameID");
+            if (!(idObj instanceof Number)) {
+                throw new IllegalArgumentException("bad request");
+            }
+            int gameID = ((Number) idObj).intValue();
+
 
             JoinGameRequest request = new JoinGameRequest(authToken, gameID, playerColor);
 
