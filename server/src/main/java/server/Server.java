@@ -2,6 +2,7 @@ package server;
 
 import dataaccess.DataAccessOnMemory;
 import service.ClearService;
+import service.UserService;
 
 import static spark.Spark.*;
 
@@ -15,10 +16,12 @@ public class Server {
 
         var dataAccessObject = new DataAccessOnMemory();
         var clearService = new ClearService(dataAccessObject);
+        var userService = new UserService(dataAccessObject);
 
         // Register your endpoints and handle exceptions here.
 
         delete("/db", new ClearHandler(clearService));
+        post("/user", new RegisterHandler(userService));
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
 

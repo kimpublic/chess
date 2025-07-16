@@ -13,9 +13,9 @@ import java.util.UUID;
 
 public class DataAccessOnMemory implements DataAccess {
 
-    private static final Map<String, UserData> userData = new HashMap<>();
-    private static final Map<String, AuthData> authData = new HashMap<>();
-    private static final Map<String, GameData> gameData = new HashMap<>();
+    private final Map<String, UserData> userData = new HashMap<>();
+    private final Map<String, AuthData> authData = new HashMap<>();
+    private final Map<String, GameData> gameData = new HashMap<>();
 
     @Override
     public void clearAll() throws DataAccessException {
@@ -59,7 +59,7 @@ public class DataAccessOnMemory implements DataAccess {
     @Override
     public void createUser(UserData user) throws DataAccessException {
         if (userData.containsKey(user.username())) {
-            throw new DataAccessException("username already taken");
+            throw new DataAccessException("already taken");
         }
         userData.put(user.username(), user);
     }
