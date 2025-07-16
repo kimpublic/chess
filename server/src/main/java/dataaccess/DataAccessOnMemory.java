@@ -4,6 +4,7 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -96,7 +97,7 @@ public class DataAccessOnMemory implements DataAccess {
 
     @Override
     public Collection<GameData> listGames() throws DataAccessException {
-        throw new DataAccessException("Not implemented");
+        return new ArrayList<>(gameData.values());
     }
 
     @Override

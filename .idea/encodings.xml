@@ -8,6 +8,9 @@
     <file url="file://$PROJECT_DIR$/server/src/main/java/server/LoginHandler.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/server/LogoutHandler.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/server/RegisterHandler.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/service/GameInfo.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/service/ListGamesRequest.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/service/ListGamesResult.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/service/LoginRequest.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/service/LoginResult.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/service/LogoutRequest.java" charset="UTF-8" />
