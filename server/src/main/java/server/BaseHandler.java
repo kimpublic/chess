@@ -44,7 +44,7 @@ public abstract class BaseHandler implements Route {
     // 인증 토큰 꺼내기 + 검증
     protected String requireAuth(Request req) {
         String token = req.headers("authorization");
-        if (token == null || token.isBlank()) throw new IllegalArgumentException();
+        if (token == null || token.isBlank()) {throw new IllegalArgumentException();}
         return token;
     }
 

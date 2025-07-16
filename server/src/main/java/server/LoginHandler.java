@@ -1,20 +1,13 @@
 package server;
 
 import com.google.gson.Gson;
-
-import dataaccess.DataAccessException;
-
-import service.UserService;
 import service.LoginRequest;
 import service.LoginResult;
-
+import service.UserService;
 import spark.Request;
 import spark.Response;
-import spark.Route;
 
-import java.util.Map;
-
-public class LoginHandler implements Route {
+public class LoginHandler extends BaseHandler {
     private final UserService userService;
     private final Gson gson = new Gson();
 
@@ -23,29 +16,9 @@ public class LoginHandler implements Route {
     }
 
     @Override
-    public Object handle(Request req, Response res) {
-        try {
-            LoginRequest request = gson.fromJson(req.body(), LoginRequest.class);
-
-            // 로그인을 시도해보자!
-            LoginResult result = userService.login(request);
-            res.status(200);
-            return gson.toJson(result);
-        } catch (IllegalArgumentException e) {
-            res.status(400);
-            return gson.toJson(Map.of("message", "Error: bad request"));
-        } catch (DataAccessException e) {
-            if ("unauthorized".equals(e.getMessage())) {
-                res.status(401);
-                return gson.toJson(Map.of("message", "Error: unauthorized"));
-            } else {
-                res.status(500);
-                return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
-            }
-        } catch (Exception e) {
-            res.status(500);
-            return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
-        }
+    protected Object process(Request req, Response res) throws Exception {
+        LoginRequest request = gson.fromJson(req.body(), LoginRequest.class);
+        LoginResult result = userService.login(request);
+        return gson.toJson(result);
     }
-
 }

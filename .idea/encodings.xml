@@ -5,6 +5,7 @@
     <file url="file://$PROJECT_DIR$/client/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/dataaccess/DataAccessOnMemory.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/server/BaseHandler.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/server/CreateGameHandler.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/server/JoinGameHandler.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/server/src/main/java/server/ListGamesHandler.java" charset="UTF-8" />
