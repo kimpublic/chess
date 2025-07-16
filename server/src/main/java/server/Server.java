@@ -24,6 +24,7 @@ public class Server {
         post("/user", new RegisterHandler(userService));
         post("/session", new LoginHandler(userService));
         delete("/session", new LogoutHandler(userService));
+        get("/game", new ListGamesHandler(userService));
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
 

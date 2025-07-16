@@ -13,7 +13,7 @@ public class DataAccessOnMemory implements DataAccess {
 
     private final Map<String, UserData> userData = new HashMap<>();
     private final Map<String, AuthData> authData = new HashMap<>();
-    private final Map<String, GameData> gameData = new HashMap<>();
+    private final Map<Integer, GameData> gameData = new HashMap<>();
 
     @Override
     public void clearAll() throws DataAccessException {
