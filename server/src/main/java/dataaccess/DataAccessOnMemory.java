@@ -8,9 +8,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import java.util.UUID;
-
-
 public class DataAccessOnMemory implements DataAccess {
 
     private final Map<String, UserData> userData = new HashMap<>();

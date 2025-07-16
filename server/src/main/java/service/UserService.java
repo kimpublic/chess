@@ -30,9 +30,28 @@ public class UserService {
         AuthData auth = new AuthData(authToken, request.username());
         dataAccessObject.createAuth(auth); // 사실 create보단 save하는거지
 
-        RegisterResult requestResult = new RegisterResult(request.username(), authToken);
+        RegisterResult registerRequestResult = new RegisterResult(request.username(), authToken);
 
-        return requestResult;
+        return registerRequestResult;
 
+    }
+
+    public LoginResult login(LoginRequest request) throws IllegalArgumentException, DataAccessException {
+        if (request.username() == null || request.username().isBlank() || request.password() == null || request.password().isBlank()) {
+            throw new IllegalArgumentException("bad request");
+        }
+
+        // 근데 내가 짠 Diagram에서는 먼저 아이디 체크하고 그다음에 패스워드 체크하는데.. 이렇게 해도 될려나? 이러면 달라지는거 아닌가?
+        UserData searchedUserData = dataAccessObject.getUser(request.username());
+        if (searchedUserData == null || !searchedUserData.password().equals(request.password())) {
+            throw new DataAccessException("unauthorized");
+        }
+        String authToken = UUID.randomUUID().toString();
+        AuthData auth = new AuthData(authToken, request.username());
+        dataAccessObject.createAuth(auth);
+
+        LoginResult loginRequestResult = new LoginResult(request.username(), authToken);
+
+        return loginRequestResult;
     }
 }
