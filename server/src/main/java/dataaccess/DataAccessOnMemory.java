@@ -27,33 +27,6 @@ public class DataAccessOnMemory implements DataAccess {
         }
     }
 
-    @Override
-    public void clearUserData() throws DataAccessException {
-        try {
-            userData.clear();
-        } catch (Exception e) {
-            throw new DataAccessException("Failed to clear data on memory");
-        }
-    }
-
-    @Override
-    public void clearAuthData() throws DataAccessException {
-        try {
-            authData.clear();
-        } catch (Exception e) {
-            throw new DataAccessException("Failed to clear data on memory");
-        }
-    }
-
-    @Override
-    public void clearGameData() throws DataAccessException {
-        try {
-            gameData.clear();
-        } catch (Exception e) {
-            throw new DataAccessException("Failed to clear data on memory");
-        }
-    }
-
     // 여기서부터 추가로 작업해야함
     @Override
     public void createUser(UserData user) throws DataAccessException {
