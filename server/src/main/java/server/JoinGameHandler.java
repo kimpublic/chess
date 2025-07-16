@@ -24,11 +24,17 @@ public class JoinGameHandler implements Route {
     @Override
     public Object handle(Request req, Response res) {
         try {
-            String token = req.headers("authorization");
-            JoinGameRequest request = gson.fromJson(req.body(), JoinGameRequest.class);
+            String authToken = req.headers("authorization");
+
+
+            Map<?,?> body = gson.fromJson(req.body(), Map.class);
+            String playerColor = (String) body.get("color");
+            Number id = (Number) body.get("gameID");
+            int gameID = id == null ? -1 : id.intValue();
+
+            JoinGameRequest request = new JoinGameRequest(authToken, gameID, playerColor);
 
             gameService.joinGame(request);
-
             res.status(200);
             return "{}";
         } catch (IllegalArgumentException e) {

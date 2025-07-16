@@ -52,7 +52,7 @@ public class GameService {
             throw new DataAccessException("unauthorized");
         }
 
-        GameData gameStored = new GameData(0, authToken.username(), null, request.gameName(), new ChessGame());
+        GameData gameStored = new GameData(0, null, null, request.gameName(), new ChessGame());
 
         // DataAccessOnMemory에서 게임 생성 후 아이디 리턴한거 받아오기
         int createdGameID = dataAccessObject.createGame(gameStored);

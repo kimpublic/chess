@@ -4,6 +4,7 @@ import dataaccess.DataAccessOnMemory;
 import service.ClearService;
 import service.GameService;
 import service.UserService;
+import spark.Spark;
 
 import static spark.Spark.*;
 
@@ -37,7 +38,7 @@ public class Server {
     }
 
     public void stop() {
-        stop();
+        Spark.stop();
         awaitStop();
     }
 }
