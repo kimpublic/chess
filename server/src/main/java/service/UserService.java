@@ -1,5 +1,6 @@
 package service;
 
+import chess.ChessGame;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.GameData;
@@ -7,6 +8,7 @@ import model.UserData;
 import model.AuthData;
 
 import java.util.ArrayList;
+import java.util.DuplicateFormatFlagsException;
 import java.util.List;
 import java.util.UUID;
 
@@ -66,28 +68,5 @@ public class UserService {
         dataAccessObject.deleteAuth(request.authToken());
     }
 
-    public ListGamesResult listGames(ListGamesRequest request) throws IllegalArgumentException, DataAccessException {
-        if (request.authToken() == null || request.authToken().isBlank()) {
-            throw new IllegalArgumentException("bad request");
-        }
 
-        AuthData returnedAuth = dataAccessObject.getAuth((request.authToken()));
-        if (returnedAuth == null) {
-            throw new DataAccessException("unauthorized");
-        }
-
-        List<GameInfo> gameInfoList = new ArrayList<>();
-
-        for (GameData game : dataAccessObject.listGames()) {
-            GameInfo gameinfo = new GameInfo(
-                    game.gameID(),
-                    game.whiteUsername(),
-                    game.blackUsername(),
-                    game.gameName()
-            );
-            gameInfoList.add(gameinfo);
-        }
-
-        return new ListGamesResult(gameInfoList);
-    }
 }

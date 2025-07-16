@@ -2,6 +2,7 @@ package server;
 
 import dataaccess.DataAccessOnMemory;
 import service.ClearService;
+import service.GameService;
 import service.UserService;
 
 import static spark.Spark.*;
@@ -17,6 +18,7 @@ public class Server {
         var dataAccessObject = new DataAccessOnMemory();
         var clearService = new ClearService(dataAccessObject);
         var userService = new UserService(dataAccessObject);
+        var gameService = new GameService(dataAccessObject);
 
         // Register your endpoints and handle exceptions here.
 
@@ -24,7 +26,8 @@ public class Server {
         post("/user", new RegisterHandler(userService));
         post("/session", new LoginHandler(userService));
         delete("/session", new LogoutHandler(userService));
-        get("/game", new ListGamesHandler(userService));
+        post("/game", new CreateGameHandler(gameService));
+        get("/game", new ListGamesHandler(gameService));
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
 

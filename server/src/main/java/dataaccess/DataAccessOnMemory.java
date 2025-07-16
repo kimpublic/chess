@@ -14,6 +14,7 @@ public class DataAccessOnMemory implements DataAccess {
     private final Map<String, UserData> userData = new HashMap<>();
     private final Map<String, AuthData> authData = new HashMap<>();
     private final Map<Integer, GameData> gameData = new HashMap<>();
+    private int gameIDTracker = 0;
 
     @Override
     public void clearAll() throws DataAccessException {
@@ -87,12 +88,15 @@ public class DataAccessOnMemory implements DataAccess {
 
     @Override
     public int createGame(GameData game) throws DataAccessException {
-        throw new DataAccessException("Not implemented");
+        int gameID = ++gameIDTracker;
+        GameData gameStored = new GameData(gameID, game.whiteUsername(), game.blackUsername(), game.gameName(), game.game());
+        gameData.put(gameID, gameStored);
+        return gameID;
     }
 
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
-        throw new DataAccessException("Not implemented");
+        return gameData.get(gameID);
     }
 
     @Override
@@ -102,7 +106,10 @@ public class DataAccessOnMemory implements DataAccess {
 
     @Override
     public void updateGame(GameData game) throws DataAccessException {
-        throw new DataAccessException("Not implemented");
+        if (!gameData.containsKey(game.gameID())) {
+            throw new DataAccessException("game not found");
+        }
+        gameData.put(game.gameID(), game);
     }
 
 }

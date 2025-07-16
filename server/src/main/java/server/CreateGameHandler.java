@@ -2,22 +2,26 @@ package server;
 
 import com.google.gson.Gson;
 
+import com.google.gson.JsonObject;
 import dataaccess.DataAccessException;
 
-import service.ListGamesRequest;
-import service.ListGamesResult;
+import service.LoginRequest;
+import service.UserService;
 import service.GameService;
+import service.CreateGameRequest;
+import service.CreateGameResult;
+
 import spark.Request;
 import spark.Response;
 import spark.Route;
 
 import java.util.Map;
 
-public class ListGamesHandler implements Route {
+public class CreateGameHandler implements Route {
     private final GameService gameService;
     private final Gson gson = new Gson();
 
-    public ListGamesHandler(GameService gameService) {
+    public CreateGameHandler(GameService gameService) {
         this.gameService = gameService;
     }
 
@@ -25,13 +29,14 @@ public class ListGamesHandler implements Route {
     public Object handle(Request req, Response res) {
         try {
             String authToken = req.headers("authorization");
-            ListGamesRequest request = new ListGamesRequest(authToken);
+            JsonObject json = gson.fromJson(req.body(), JsonObject.class);
+            String gameName = json.get("gameName").getAsString();
 
-            ListGamesResult result = gameService.listGames(request);
+            CreateGameRequest request = new CreateGameRequest(authToken, gameName);
+            CreateGameResult result = gameService.createGame(request);
 
             res.status(200);
             return gson.toJson(result);
-
         } catch (IllegalArgumentException e) {
             res.status(400);
             return gson.toJson(Map.of("message", "Error: bad request"));
@@ -48,4 +53,5 @@ public class ListGamesHandler implements Route {
             return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
         }
     }
+
 }
