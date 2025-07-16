@@ -1,23 +1,13 @@
 package server;
 
 import com.google.gson.Gson;
-
-import com.google.gson.JsonObject;
-import dataaccess.DataAccessException;
-
-import service.LoginRequest;
-import service.UserService;
-import service.GameService;
 import service.CreateGameRequest;
 import service.CreateGameResult;
-
+import service.GameService;
 import spark.Request;
 import spark.Response;
-import spark.Route;
 
-import java.util.Map;
-
-public class CreateGameHandler implements Route {
+public class CreateGameHandler extends BaseHandler {
     private final GameService gameService;
     private final Gson gson = new Gson();
 
@@ -26,37 +16,13 @@ public class CreateGameHandler implements Route {
     }
 
     @Override
-    public Object handle(Request req, Response res) {
-        try {
-            String authToken = req.headers("authorization");
+    protected Object process(Request req, Response res) throws Exception {
+        String authToken = requireAuth(req);
+        String gameName  = requireField(req, "gameName");
 
-            Map<?,?> body = gson.fromJson(req.body(), Map.class);
-            String gameName = (String) body.get("gameName");
-
-            if (authToken == null || authToken.isBlank() || gameName == null || gameName.isBlank()) {
-                throw new IllegalArgumentException("bad request");
-            }
-
-            CreateGameRequest request = new CreateGameRequest(authToken, gameName);
-            CreateGameResult result = gameService.createGame(request);
-
-            res.status(200);
-            return gson.toJson(result);
-        } catch (IllegalArgumentException e) {
-            res.status(400);
-            return gson.toJson(Map.of("message", "Error: bad request"));
-        } catch (DataAccessException e) {
-            if ("unauthorized".equals(e.getMessage())) {
-                res.status(401);
-                return gson.toJson(Map.of("message", "Error: unauthorized"));
-            } else {
-                res.status(500);
-                return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
-            }
-        } catch (Exception e) {
-            res.status(500);
-            return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
-        }
+        CreateGameResult result = gameService.createGame(
+                new CreateGameRequest(authToken, gameName)
+        );
+        return gson.toJson(result);
     }
-
 }
