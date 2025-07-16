@@ -8,6 +8,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.util.UUID;
+
 
 public class DataAccessOnMemory implements DataAccess {
 
@@ -56,22 +58,25 @@ public class DataAccessOnMemory implements DataAccess {
     // 여기서부터 추가로 작업해야함
     @Override
     public void createUser(UserData user) throws DataAccessException {
-        throw new DataAccessException("Not implemented");
+        if (userData.containsKey(user.username())) {
+            throw new DataAccessException("username already taken");
+        }
+        userData.put(user.username(), user);
     }
 
     @Override
     public UserData getUser(String username) throws DataAccessException {
-        throw new DataAccessException("Not implemented");
+        return userData.get(username);
     }
 
     @Override
     public void createAuth(AuthData auth) throws DataAccessException {
-        throw new DataAccessException("Not implemented");
+        authData.put(auth.authToken(), auth);
     }
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
-        throw new DataAccessException("Not implemented");
+        return authData.get(authToken);
     }
 
     @Override
