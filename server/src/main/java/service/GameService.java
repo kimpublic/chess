@@ -59,4 +59,44 @@ public class GameService {
 
         return new CreateGameResult(createdGameID);
     }
+
+    public void joinGame(JoinGameRequest request) throws IllegalArgumentException, DataAccessException {
+        if (request.authToken() == null || request.authToken().isBlank() || request.playerColor() == null || request.playerColor().isBlank()) {
+            throw new IllegalArgumentException("bad request");
+        }
+
+        AuthData auth = dataAccessObject.getAuth(request.authToken());
+        if (auth == null) {
+            throw new DataAccessException("unauthorized");
+        }
+
+        GameData searchedGame = dataAccessObject.getGame(request.gameID());
+        if (searchedGame == null) {
+            throw new IllegalArgumentException("bad request");
+        }
+
+        String white = searchedGame.whiteUsername();
+        String black = searchedGame.blackUsername();
+        String player = auth.username();
+
+        GameData updatedGameData;
+        if (request.playerColor().equals("WHITE")) {
+            if (white != null) {
+                throw new DataAccessException("already taken");
+            }
+            updatedGameData = new GameData(
+                    searchedGame.gameID(), player, black, searchedGame.gameName(), searchedGame.game()
+            );
+        } else if (request.playerColor().equals("BLACK")) {
+            if (black != null) {
+                throw new DataAccessException("already taken");
+            }
+            updatedGameData = new GameData(
+                    searchedGame.gameID(), white, player, searchedGame.gameName(), searchedGame.game()
+            );
+        } else {
+            throw new IllegalArgumentException("bad request");
+        }
+        dataAccessObject.updateGame(updatedGameData);
+    }
 }
