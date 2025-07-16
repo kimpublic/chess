@@ -219,14 +219,14 @@ public class ChessGame {
 
                 board.addPiece(rookEnd, rookPiece);
                 board.addPiece(rookStart, null);
-                if (!rookPiece.hasMoved()) rookPiece.markMoved();
+                if (!rookPiece.hasMoved()) {rookPiece.markMoved();}
             } else if (end.getColumn() == start.getColumn() - 2) {
                 ChessPosition rookStart = new ChessPosition(row, 1);
                 ChessPosition rookEnd = new ChessPosition(row, 4);
                 ChessPiece rookPiece = board.getPiece(rookStart);
                 board.addPiece(rookEnd, rookPiece);
                 board.addPiece(rookStart, null);
-                if (!rookPiece.hasMoved()) rookPiece.markMoved();
+                if (!rookPiece.hasMoved()) {rookPiece.markMoved();}
             }
         }
 

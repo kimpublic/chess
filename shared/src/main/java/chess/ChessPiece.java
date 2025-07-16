@@ -133,7 +133,7 @@ public class ChessPiece {
 
                 ChessPosition nextPosition = new ChessPosition(row, col);
                 /* 다음 칸이 보드판 밖이면 멈춤 */
-                if (!board.isValidPosition(nextPosition)) break;
+                if (!board.isValidPosition(nextPosition)) {break;}
 
                 ChessPiece pieceAtNextPosition = board.getPiece(nextPosition);
                 /* 다른 말이 없으면 유효, 다른 말 있으면 상대말이면 이동 가능, 다만 거기서 멈춰야 함 */
@@ -251,7 +251,7 @@ public class ChessPiece {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
+        if (this == o) {return true;}
         if (!(o instanceof ChessPiece that)) {
             return false;
         }
