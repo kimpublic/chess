@@ -87,7 +87,7 @@ public class ChessGame {
                 ChessPiece rookPieceRight = board.getPiece(rookRight);
 
                 ChessPiece check1 = board.getPiece(new ChessPosition(row, 6));
-                ChessPiece check2 = board.getPiece(new ChessPosition(row, 7))
+                ChessPiece check2 = board.getPiece(new ChessPosition(row, 7));
 
                 if (rookPieceRight != null && rookPieceRight.getPieceType() == ChessPiece.PieceType.ROOK && !rookPieceRight.hasMoved() && check1 == null && check2 == null) {
                     ChessBoard simulationForCol6 = board.simulationBoard();
@@ -109,7 +109,7 @@ public class ChessGame {
 
                 ChessPiece check3 = board.getPiece(new ChessPosition(row, 2));
                 ChessPiece check4 = board.getPiece(new ChessPosition(row, 3));
-                ChessPiece check5 = board.getPiece(new ChessPosition(row, 4))
+                ChessPiece check5 = board.getPiece(new ChessPosition(row, 4));
 
                 if (rookPieceLeft != null && rookPieceLeft.getPieceType() == ChessPiece.PieceType.ROOK && !rookPieceLeft.hasMoved() && check3 == null && check4 == null && check5 == null) {
                     ChessBoard simulationForCol4 = board.simulationBoard();
