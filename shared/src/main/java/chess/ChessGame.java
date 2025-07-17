@@ -59,27 +59,53 @@ public class ChessGame {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         Collection<ChessMove> validMoves = new ArrayList<>();
         ChessPiece piece = board.getPiece(startPosition);
-        if (piece == null) {
-            return validMoves;
-        }
-        Collection<ChessMove> possibleMoves = piece.pieceMoves(board, startPosition);
+        if (piece == null) {return validMoves;}
 
-        for (ChessMove move : possibleMoves) {
+        basicMoveCheck(startPosition, piece, validMoves);
+
+        /* 캐슬링 */
+        castlingCheck(startPosition, piece, validMoves);
+
+
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && lastDoublePawn != null) {
+            int direction = (piece.getTeamColor() == TeamColor.WHITE) ? 1 : -1;
+            int startRow = startPosition.getRow();
+            int thePawn = (piece.getTeamColor() == TeamColor.WHITE) ? 5 : 4;
+
+            if ( startRow == thePawn && Math.abs(lastDoublePawn.getColumn() - startPosition.getColumn()) == 1) {
+
+                ChessPosition capturePosition = new ChessPosition(startRow + direction, lastDoublePawn.getColumn());
+
+                if (board.isValidPosition(capturePosition) && board.getPiece(capturePosition) == null) {
+                    ChessBoard simulation = board.simulationBoard();
+
+                    ChessPiece pawnForSimulation = simulation.getPiece(startPosition);
+                    simulation.addPiece(capturePosition, pawnForSimulation);
+                    simulation.addPiece(startPosition, null);
+                    simulation.addPiece(lastDoublePawn, null);
+
+                    if (!checkSimulation(simulation, piece.getTeamColor())) {
+                        validMoves.add(new ChessMove(startPosition, capturePosition, null));
+                    }
+                }
+            }
+        }
+        return validMoves;
+    }
+
+    private void basicMoveCheck(ChessPosition startPosition, ChessPiece piece, Collection<ChessMove> validMoves) {
+        for (ChessMove move : piece.pieceMoves(board, startPosition)) {
             ChessBoard simulationBoard = board.simulationBoard();
             ChessPiece targetPiece = simulationBoard.getPiece(startPosition);
-
             simulationBoard.addPiece(move.getEndPosition(), targetPiece);
             simulationBoard.addPiece(startPosition, null);
-
-
-
             if (!checkSimulation(simulationBoard, piece.getTeamColor())) {
                 validMoves.add(move);
             }
-
         }
+    }
 
-        /* 캐슬링 */
+    private void castlingCheck(ChessPosition startPosition, ChessPiece piece, Collection<ChessMove> validMoves) {
         if (piece.getPieceType() == ChessPiece.PieceType.KING && !piece.hasMoved() && !checkSimulation(board, piece.getTeamColor())) {
             int row = (piece.getTeamColor() == TeamColor.WHITE) ? 1 : 8;
 
@@ -137,32 +163,6 @@ public class ChessGame {
                 }
             }
         }
-
-        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && lastDoublePawn != null) {
-            int direction = (piece.getTeamColor() == TeamColor.WHITE) ? 1 : -1;
-            int startRow = startPosition.getRow();
-            int thePawn = (piece.getTeamColor() == TeamColor.WHITE) ? 5 : 4;
-
-            if ( startRow == thePawn && Math.abs(lastDoublePawn.getColumn() - startPosition.getColumn()) == 1) {
-
-                ChessPosition capturePosition = new ChessPosition(startRow + direction, lastDoublePawn.getColumn());
-
-                if (board.isValidPosition(capturePosition) && board.getPiece(capturePosition) == null) {
-                    ChessBoard simulation = board.simulationBoard();
-
-                    ChessPiece pawnForSimulation = simulation.getPiece(startPosition);
-                    simulation.addPiece(capturePosition, pawnForSimulation);
-                    simulation.addPiece(startPosition, null);
-                    simulation.addPiece(lastDoublePawn, null);
-
-                    if (!checkSimulation(simulation, piece.getTeamColor())) {
-                        validMoves.add(new ChessMove(startPosition, capturePosition, null));
-                    }
-                }
-            }
-        }
-        return validMoves;
-
     }
 
     private boolean checkSimulation(ChessBoard board, TeamColor teamColor) {
