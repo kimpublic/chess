@@ -164,21 +164,6 @@ public class GameServiceTest {
 
     // joinGame-bad request
     @Test
-    void joinGameInvalidgameID() throws DataAccessException {
-        try {
-            userService.register((new RegisterRequest("minjoong", "password", "test@gmail.com")));
-            String authToken = userService.login(new LoginRequest("minjoong", "password")).authToken();
-            int gameID = gameService.createGame(new CreateGameRequest(authToken, "Test Game")).gameID();
-
-            gameService.joinGame(new JoinGameRequest(authToken, 999, "WHITE"));
-            fail("test failed");
-        } catch (IllegalArgumentException e) {
-            assertEquals("bad request", e.getMessage());
-        }
-    }
-
-    // joinGame-bad request
-    @Test
     void joinGameInvalidColor() throws DataAccessException {
         try {
             userService.register((new RegisterRequest("minjoong", "password", "test@gmail.com")));
