@@ -85,7 +85,11 @@ public class ChessGame {
 
                 ChessPosition rookRight = new ChessPosition(row, 8);
                 ChessPiece rookPieceRight = board.getPiece(rookRight);
-                if (rookPieceRight != null && rookPieceRight.getPieceType() == ChessPiece.PieceType.ROOK && !rookPieceRight.hasMoved() && board.getPiece(new ChessPosition(row, 6)) == null && board.getPiece(new ChessPosition(row, 7)) == null) {
+
+                ChessPiece check1 = board.getPiece(new ChessPosition(row, 6));
+                ChessPiece check2 = board.getPiece(new ChessPosition(row, 7))
+
+                if (rookPieceRight != null && rookPieceRight.getPieceType() == ChessPiece.PieceType.ROOK && !rookPieceRight.hasMoved() && check1 == null && check2 == null) {
                     ChessBoard simulationForCol6 = board.simulationBoard();
                     ChessPiece kingForRightSimulation = simulationForCol6.getPiece(startPosition);
                     simulationForCol6.addPiece(new ChessPosition(row, 6), kingForRightSimulation);
@@ -103,7 +107,11 @@ public class ChessGame {
                 ChessPosition rookLeft = new ChessPosition(row, 1);
                 ChessPiece rookPieceLeft = board.getPiece(rookLeft);
 
-                if (rookPieceLeft != null && rookPieceLeft.getPieceType() == ChessPiece.PieceType.ROOK && !rookPieceLeft.hasMoved() && board.getPiece(new ChessPosition(row, 2)) == null && board.getPiece(new ChessPosition(row, 3)) == null && board.getPiece(new ChessPosition(row, 4)) == null) {
+                ChessPiece check3 = board.getPiece(new ChessPosition(row, 2));
+                ChessPiece check4 = board.getPiece(new ChessPosition(row, 3));
+                ChessPiece check5 = board.getPiece(new ChessPosition(row, 4))
+
+                if (rookPieceLeft != null && rookPieceLeft.getPieceType() == ChessPiece.PieceType.ROOK && !rookPieceLeft.hasMoved() && check3 == null && check4 == null && check5 == null) {
                     ChessBoard simulationForCol4 = board.simulationBoard();
                     ChessPiece kingForLeftSimulation = simulationForCol4.getPiece(startPosition);
                     simulationForCol4.addPiece(new ChessPosition(row, 4), kingForLeftSimulation);
@@ -205,8 +213,13 @@ public class ChessGame {
             throw new InvalidMoveException();
         }
 
-        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && Math.abs(end.getColumn() - start.getColumn()) == 1 && board.getPiece(end) == null && lastDoublePawn != null && lastDoublePawn.getRow() == start.getRow() && lastDoublePawn.getColumn() == end.getColumn()) {
-            board.addPiece(lastDoublePawn, null);
+        int compare1 = Math.abs(end.getColumn() - start.getColumn());
+
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && compare1 == 1 && board.getPiece(end) == null) {
+            if (lastDoublePawn != null && lastDoublePawn.getRow() == start.getRow() && lastDoublePawn.getColumn() == end.getColumn())
+            {
+                board.addPiece(lastDoublePawn, null);
+            }
         }
 
         if (piece.getPieceType() == ChessPiece.PieceType.KING && Math.abs(end.getColumn() - start.getColumn()) == 2) {
