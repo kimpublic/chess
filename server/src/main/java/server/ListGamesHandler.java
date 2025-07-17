@@ -1,19 +1,13 @@
 package server;
 
 import com.google.gson.Gson;
-
-import dataaccess.DataAccessException;
-
 import service.ListGamesRequest;
 import service.ListGamesResult;
 import service.GameService;
 import spark.Request;
 import spark.Response;
-import spark.Route;
 
-import java.util.Map;
-
-public class ListGamesHandler implements Route {
+public class ListGamesHandler extends BaseHandler {
     private final GameService gameService;
     private final Gson gson = new Gson();
 
@@ -22,30 +16,16 @@ public class ListGamesHandler implements Route {
     }
 
     @Override
-    public Object handle(Request req, Response res) {
-        try {
-            String authToken = req.headers("authorization");
-            ListGamesRequest request = new ListGamesRequest(authToken);
+    protected Object process(Request req, Response res) throws Exception {
+        // 인증 토큰 검증
+        String authToken = requireAuth(req);
 
-            ListGamesResult result = gameService.listGames(request);
+        // 게임 목록 조회
+        ListGamesResult result = gameService.listGames(
+                new ListGamesRequest(authToken)
+        );
 
-            res.status(200);
-            return gson.toJson(result);
-
-        } catch (IllegalArgumentException e) {
-            res.status(400);
-            return gson.toJson(Map.of("message", "Error: bad request"));
-        } catch (DataAccessException e) {
-            if ("unauthorized".equals(e.getMessage())) {
-                res.status(401);
-                return gson.toJson(Map.of("message", "Error: unauthorized"));
-            } else {
-                res.status(500);
-                return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
-            }
-        } catch (Exception e) {
-            res.status(500);
-            return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
-        }
+        // JSON 직렬화하여 반환
+        return gson.toJson(result);
     }
 }
