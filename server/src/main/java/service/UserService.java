@@ -21,8 +21,17 @@ public class UserService {
 
     public RegisterResult register(RegisterRequest request) throws IllegalArgumentException, DataAccessException {
 
+        String username = request.username();
+        String password = request.password();
+        String email    = request.email();
 
-        if (request.username() == null || request.username().isBlank() || request.password() == null || request.password().isBlank() || request.email() == null || request.email().isBlank()) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("bad request");
+        }
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("bad request");
+        }
+        if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("bad request");
         }
 

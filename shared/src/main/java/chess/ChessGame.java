@@ -89,7 +89,12 @@ public class ChessGame {
             ChessPiece gap1 = board.getPiece(new ChessPosition(row, 6));
             ChessPiece gap2 = board.getPiece(new ChessPosition(row, 7));
 
-            if (rookPieceRight != null && rookPieceRight.getPieceType() == ChessPiece.PieceType.ROOK && !rookPieceRight.hasMoved() && gap1 == null && gap2 == null) {
+            boolean isRookRight = rookPieceRight != null
+                    && rookPieceRight.getPieceType() == ChessPiece.PieceType.ROOK
+                    && !rookPieceRight.hasMoved();
+            boolean isPathClearRight = gap1 == null && gap2 == null;
+
+            if (isRookRight && isPathClearRight) {
                 ChessBoard simulationForCol6 = board.simulationBoard();
                 ChessPiece kingForRightSimulation = simulationForCol6.getPiece(startPosition);
                 simulationForCol6.addPiece(new ChessPosition(row, 6), kingForRightSimulation);
@@ -109,10 +114,15 @@ public class ChessGame {
 
             ChessPiece gapA = board.getPiece(new ChessPosition(row, 2));
             ChessPiece gapB = board.getPiece(new ChessPosition(row, 3));
-            ChessPiece gabC = board.getPiece(new ChessPosition(row, 4));
+            ChessPiece gapC = board.getPiece(new ChessPosition(row, 4));
+
+            boolean isRookLeft = rookPieceLeft != null
+                    && rookPieceLeft.getPieceType() == ChessPiece.PieceType.ROOK
+                    && !rookPieceLeft.hasMoved();
+            boolean isPathClearLeft = gapA == null && gapB == null && gapC == null;
 
 
-            if (rookPieceLeft != null && rookPieceLeft.getPieceType() == ChessPiece.PieceType.ROOK && !rookPieceLeft.hasMoved() && gapA == null && gapB == null && gabC == null) {
+            if (isRookLeft && isPathClearLeft) {
                 ChessBoard simulationForCol4 = board.simulationBoard();
                 ChessPiece kingForLeftSimulation = simulationForCol4.getPiece(startPosition);
                 simulationForCol4.addPiece(new ChessPosition(row, 4), kingForLeftSimulation);
