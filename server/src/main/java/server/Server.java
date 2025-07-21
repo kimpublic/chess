@@ -1,10 +1,13 @@
 package server;
 
+import dataaccess.DataAccessException;
 import dataaccess.DataAccessOnMemory;
+import dataaccess.DatabaseManager;
 import service.ClearService;
 import service.GameService;
 import service.UserService;
 import spark.Spark;
+import dataaccess.DatabaseManager;
 
 import static spark.Spark.*;
 
@@ -13,6 +16,14 @@ public class Server {
 
     public int run(int portNumber) {
         port(portNumber);
+
+        try {
+            DatabaseManager.setupDatabase();
+        } catch (DataAccessException e) {
+            System.err.println("Database setup failed: " +e.getMessage());
+            throw new RuntimeException(e);
+        }
+
 
         staticFiles.location("/web");
 

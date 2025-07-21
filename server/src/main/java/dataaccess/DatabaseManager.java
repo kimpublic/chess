@@ -74,4 +74,52 @@ public class DatabaseManager {
         var port = Integer.parseInt(props.getProperty("db.port"));
         connectionUrl = String.format("jdbc:mysql://%s:%d", host, port);
     }
+
+    public static void setupDatabase() throws DataAccessException {
+        createDatabase();
+        createTables();
+    }
+
+    private static void createTables() throws DataAccessException {
+        String userTable = """
+            CREATE TABLE IF NOT EXISTS users (  
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                hashed_password VARCHAR(60) NOT NULL,
+                email VARCHAR(100)
+            );
+        """;
+
+        String tokenTable = """
+            CREATE TABLE IF NOT EXISTS tokens (
+                token VARCHAR(36) PRIMARY KEY,
+                user_id INT NOT NULL,
+                expires_at DATETIME NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            );
+        """;
+
+        String gameTable = """
+            CREATE TABLE IF NOT EXISTS games (
+                game_id INT AUTO_INCREMENT PRIMARY KEY,
+                game_name VARCHAR(100),
+                state_json TEXT,
+                white_id INT,
+                black_id INT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (white_id) REFERENCES users(id),
+                FOREIGN KEY (black_id) REFERENCES users(id)
+            );
+        """;
+
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.executeUpdate(userTable);
+            statement.executeUpdate(tokenTable);
+            statement.executeUpdate(gameTable);
+        } catch (SQLException e) {
+            throw new DataAccessException("Table creation failed", e);
+        }
+    }
 }
