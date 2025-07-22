@@ -23,9 +23,21 @@ public class DataAccessOnMySQL implements DataAccess {
     public void clearAll() throws DataAccessException {
         try (var connection = DatabaseManager.getConnection();
              var statement = connection.createStatement()) {
-            statement.executeUpdate("TRUNCATE TABLE users");
-            statement.executeUpdate("TRUNCATE TABLE tokens");
-            statement.executeUpdate("TRUNCATE TABLE games");
+            // 1) 외래 키 제약 해제
+            statement.execute("SET FOREIGN_KEY_CHECKS = 0");
+
+            // 2) DELETE (TRUNCATE 대신)
+            statement.executeUpdate("DELETE FROM tokens");
+            statement.executeUpdate("DELETE FROM games");
+            statement.executeUpdate("DELETE FROM users");
+
+            // 3) AUTO_INCREMENT(자동 증가) 리셋
+            statement.executeUpdate("ALTER TABLE tokens AUTO_INCREMENT = 1");
+            statement.executeUpdate("ALTER TABLE games AUTO_INCREMENT = 1");
+            statement.executeUpdate("ALTER TABLE users AUTO_INCREMENT = 1");
+
+            // 4) 외래 키 제약 복원
+            statement.execute("SET FOREIGN_KEY_CHECKS = 1");
         } catch (SQLException e) {
             throw new DataAccessException("Failed to clear data on MySQL");
         }
@@ -68,7 +80,7 @@ public class DataAccessOnMySQL implements DataAccess {
     public void createAuth(AuthData auth) throws DataAccessException {
         String findUserIdFormat = "SELECT id FROM users WHERE username = ?";
         String insertTokenFormat = """
-            INSERT INTO tokens(token, user_id, expires_at) VALUES (?, ?, DATA_ADD(CURRENT_TIMESTAMP, INTERVAL 1 HOUR))
+            INSERT INTO tokens(token, user_id, expires_at) VALUES (?, ?, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 HOUR))
         """;
 
         try (var connection = DatabaseManager.getConnection();
@@ -147,7 +159,7 @@ public class DataAccessOnMySQL implements DataAccess {
     public int createGame(GameData game) throws DataAccessException {
         String statementFormat = "INSERT INTO games(game_name, state_json, white_id, black_id, created_at, updated_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
         try (var connection = DatabaseManager.getConnection();
-             var statement = connection.prepareStatement(statementFormat)) {
+             var statement = connection.prepareStatement(statementFormat, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, game.gameName());
             statement.setString(2, gson.toJson(game.game()));
             if (game.whiteUsername() != null) {statement.setInt(3, lookupUserId(connection, game.whiteUsername()));}
@@ -238,9 +250,9 @@ public class DataAccessOnMySQL implements DataAccess {
              var statement = connection.prepareStatement(statementFormat)) {
             statement.setString(1, gson.toJson(game.game()));
             if (game.whiteUsername() != null) {statement.setInt(2, lookupUserId(connection, game.whiteUsername()));}
-            else {statement.setInt(2, Types.INTEGER);}
+            else {statement.setNull(2, Types.INTEGER);}
             if (game.blackUsername() != null) {statement.setInt(3, lookupUserId(connection, game.blackUsername()));}
-            else {statement.setInt(3, Types.INTEGER);}
+            else {statement.setNull(3, Types.INTEGER);}
             statement.setInt(4, game.gameID());
             int updatedNumbers = statement.executeUpdate();
             if (updatedNumbers == 0) {throw new DataAccessException("game does not exist");}

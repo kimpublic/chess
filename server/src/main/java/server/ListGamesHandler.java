@@ -26,6 +26,6 @@ public class ListGamesHandler extends BaseHandler {
         );
 
         // JSON 직렬화하여 반환
-        return gson.toJson(result);
+        return new Gson().toJson(result);
     }
 }

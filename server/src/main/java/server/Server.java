@@ -36,9 +36,11 @@ public class Server {
         // Register your endpoints and handle exceptions here.
 
         delete("/db", new ClearHandler(clearService));
+
         post("/user", new RegisterHandler(userService));
         post("/session", new LoginHandler(userService));
         delete("/session", new LogoutHandler(userService));
+
         post("/game", new CreateGameHandler(gameService));
         get("/game", new ListGamesHandler(gameService));
         put("/game", new JoinGameHandler(gameService));

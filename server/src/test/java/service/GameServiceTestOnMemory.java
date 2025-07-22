@@ -2,7 +2,6 @@ package service;
 
 import dataaccess.DataAccessException;
 import dataaccess.DataAccessOnMemory;
-import dataaccess.DataAccessOnMySQL;
 import model.GameData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,18 +10,16 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class GameServiceTest {
+public class GameServiceTestOnMemory {
     private GameService gameService;
     private UserService userService;
-    private DataAccessOnMySQL dataAccessObject;
+    private DataAccessOnMemory dataAccessObject;
 
     @BeforeEach
-    void testSetUp() throws DataAccessException {
-        dataAccessObject = new DataAccessOnMySQL();
+    void testSetUp() {
+        dataAccessObject = new DataAccessOnMemory();
         gameService = new GameService(dataAccessObject);
         userService = new UserService(dataAccessObject);
-        ClearService service1 = new ClearService(dataAccessObject);
-        service1.clear();
     }
 
     // createGame 테스트
