@@ -124,7 +124,19 @@ public class DataAccessOnMySQL implements DataAccess {
 
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
+        String statementFormat = "DELETE FROM tokens WHERE token = ?";
 
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(statementFormat)) {
+            statement.setString(1, authToken);
+            // 딜리트 명령으로 영향을 받은 행의 숫자를 돌려준다고 함
+            int deletedNumbers = statement.executeUpdate();
+            if (deletedNumbers == 0) {
+                throw new DataAccessException("unauthorized");
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to delete auth", e);
+        }
     }
 
     @Override
