@@ -62,13 +62,37 @@ public class DataAccessOnMySQL implements DataAccess {
 
     @Override
     public void createAuth(AuthData auth) throws DataAccessException {
+        String findUserIdFormat = "SELECT id FROM users WHERE username = ?";
+        String insertTokenFormat = """
+            INSERT INTO tokens(token, user_id, expires_at) VALUES (?, ?, DATA_ADD(CURRENT_TIMESTAMP, INTERVAL 1 HOUR))
+        """;
+
+        try (var connection = DatabaseManager.getConnection();
+             var findUserIdStatement = connection.prepareStatement(findUserIdFormat);
+             var insertTokenStatement = connection.prepareStatement(insertTokenFormat)) {
+            findUserIdStatement.setString(1, auth.username());
+            try (var response = findUserIdStatement.executeQuery()) {
+                if (!response.next()) {
+                    throw new DataAccessException("unauthorized");
+                }
+                int userID = response.getInt("id");
+
+                insertTokenStatement.setString(1, auth.authToken());
+                insertTokenStatement.setInt(2, userID);
+                insertTokenStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to create auth", e);
+        }
 
     }
 
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
-
+        String statementFormat = """
+            SELECT 
+        """
     }
 
     @Override
