@@ -90,9 +90,36 @@ public class DataAccessOnMySQL implements DataAccess {
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
-        String statementFormat = """
-            SELECT 
-        """
+        String findUserIdFormat = """
+            SELECT user_id FROM tokens WHERE token = ?
+        """;
+
+        String findUsernameFormat = """
+            SELECT username FROM users WHERE id = ?        
+        """;
+
+        try (var connection = DatabaseManager.getConnection();
+             var findUserIdStatement = connection.prepareStatement(findUserIdFormat);
+             var findUsernameStatement = connection.prepareStatement(findUsernameFormat)) {
+            findUserIdStatement.setString(1, authToken);
+            try (var response = findUserIdStatement.executeQuery()) {
+                if (!response.next()) {
+                    return null;
+                }
+                int userID = response.getInt("user_id");
+
+                findUsernameStatement.setInt(1, userID);
+                try (var secondResponse = findUsernameStatement.executeQuery()) {
+                    if (!secondResponse.next()) {
+                        return null;
+                    }
+                    String username = secondResponse.getString("username");
+                    return new AuthData(authToken, username);
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to get auth", e);
+        }
     }
 
     @Override
