@@ -1,15 +1,19 @@
 package dataaccess;
 
+import chess.ChessGame;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
+import com.google.gson.Gson;
+
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.Collection;
 
 public class DataAccessOnMySQL implements DataAccess {
+    private final Gson gson = new Gson();
 
     public DataAccessOnMySQL() throws DataAccessException {
 
@@ -95,7 +99,7 @@ public class DataAccessOnMySQL implements DataAccess {
         """;
 
         String findUsernameFormat = """
-            SELECT username FROM users WHERE id = ?        
+            SELECT username FROM users WHERE id = ?
         """;
 
         try (var connection = DatabaseManager.getConnection();
@@ -141,22 +145,121 @@ public class DataAccessOnMySQL implements DataAccess {
 
     @Override
     public int createGame(GameData game) throws DataAccessException {
-
+        String statementFormat = "INSERT INTO games(game_name, state_json, white_id, black_id, created_at, updated_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(statementFormat)) {
+            statement.setString(1, game.gameName());
+            statement.setString(2, gson.toJson(game.game()));
+            if (game.whiteUsername() != null) {statement.setInt(3, lookupUserId(connection, game.whiteUsername()));}
+            else {statement.setNull(3, Types.INTEGER);}
+            if (game.blackUsername() != null) {statement.setInt(4, lookupUserId(connection, game.blackUsername()));}
+            else {statement.setNull(4, Types.INTEGER);}
+            statement.executeUpdate();
+            try (var response = statement.getGeneratedKeys()) {
+                if (response.next()) {return response.getInt(1);}
+                else {throw new DataAccessException("Failed to create game");}
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to create game", e);
+        }
     }
 
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
+        String statementFormat = """
+            SELECT
+                game.game_id,
+                game.game_name,
+                game.state_json,
+                white.username AS whiteUsername,
+                black.username AS blackUsername
+            FROM games game
+            LEFT JOIN users white ON game.white_id = white.id
+            LEFT JOIN users black ON game.black_id = black.id
+            WHERE game.game_id = ?
+        """;
 
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(statementFormat)) {
+            statement.setInt(1, gameID);
+            try (var response = statement.executeQuery()) {
+                if (!response.next()) {return null;}
+                ChessGame game = gson.fromJson(response.getString("state_json"), ChessGame.class);
+                return new GameData(
+                        response.getInt("game_id"),
+                        response.getString("whiteUsername"),
+                        response.getString("blackUsername"),
+                        response.getString("game_name"),
+                        game
+                );
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to get game", e);
+        }
     }
 
     @Override
     public Collection<GameData> listGames() throws DataAccessException {
-
+        String statementFormat = """
+            SELECT
+                game.game_id,
+                game.game_name,
+                game.state_json,
+                white.username AS whiteUsername,
+                black.username AS blackUsername
+            FROM games game
+            LEFT JOIN users white ON game.white_id = white.id
+            LEFT JOIN users black ON game.black_id = black.id
+        """;
+        Collection<GameData> games = new ArrayList<>();
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(statementFormat);
+             var response = statement.executeQuery()) {
+            while (response.next()) {
+                ChessGame game = gson.fromJson(response.getString("state_json"), ChessGame.class);
+                games.add(new GameData(
+                        response.getInt("game_id"),
+                        response.getString("whiteUsername"),
+                        response.getString("blackUsername"),
+                        response.getString("game_name"),
+                        game
+                ));
+            }
+            return games;
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to list games", e);
+        }
     }
 
     @Override
     public void updateGame(GameData game) throws DataAccessException {
+        String statementFormat = "UPDATE games SET state_json = ?, white_id = ?, black_id = ? WHERE game_id = ?";
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(statementFormat)) {
+            statement.setString(1, gson.toJson(game.game()));
+            if (game.whiteUsername() != null) {statement.setInt(2, lookupUserId(connection, game.whiteUsername()));}
+            else {statement.setInt(2, Types.INTEGER);}
+            if (game.blackUsername() != null) {statement.setInt(3, lookupUserId(connection, game.blackUsername()));}
+            else {statement.setInt(3, Types.INTEGER);}
+            statement.setInt(4, game.gameID());
+            int updatedNumbers = statement.executeUpdate();
+            if (updatedNumbers == 0) {throw new DataAccessException("game does not exist");}
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to update game", e);
+        }
+    }
 
+    private int lookupUserId(Connection connection, String username) throws DataAccessException {
+        String statementFormat = "SELECT id FROM users WHERE username = ?";
+        try (var statement = connection.prepareStatement(statementFormat)) {
+            statement.setString(1, username);
+            try (var response = statement.executeQuery()) {
+                if (response.next()) {return response.getInt("id");}
+                else throw new DataAccessException("User not found: " + username);
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to lookup user ID", e);
+        }
     }
 
 

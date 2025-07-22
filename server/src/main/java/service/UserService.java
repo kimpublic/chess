@@ -1,15 +1,12 @@
 package service;
 
-import chess.ChessGame;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
-import model.GameData;
 import model.UserData;
 import model.AuthData;
+import org.mindrot.jbcrypt.BCrypt;
 
-import java.util.ArrayList;
-import java.util.DuplicateFormatFlagsException;
-import java.util.List;
+
 import java.util.UUID;
 
 public class UserService {
@@ -58,7 +55,8 @@ public class UserService {
 
         // 근데 내가 짠 Diagram에서는 먼저 아이디 체크하고 그다음에 패스워드 체크하는데.. 이렇게 해도 될려나? 이러면 달라지는거 아닌가?
         UserData searchedUserData = dataAccessObject.getUser(request.username());
-        if (searchedUserData == null || !searchedUserData.password().equals(request.password())) {
+        // if (searchedUserData == null || !searchedUserData.password().equals(request.password())) {
+        if (searchedUserData == null || !BCrypt.checkpw(request.password(), searchedUserData.password())) {
             throw new DataAccessException("unauthorized");
         }
         String authToken = UUID.randomUUID().toString();

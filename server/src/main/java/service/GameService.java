@@ -4,11 +4,9 @@ import chess.ChessGame;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.GameData;
-import model.UserData;
 import model.AuthData;
 
 import java.util.ArrayList;
-import java.util.DuplicateFormatFlagsException;
 import java.util.List;
 
 public class GameService {
@@ -44,7 +42,7 @@ public class GameService {
     }
     public CreateGameResult createGame(CreateGameRequest request) throws IllegalArgumentException, DataAccessException {
         if (request.authToken() == null || request.authToken().isBlank() || request.gameName() == null || request.gameName().isBlank()) {
-            throw new DuplicateFormatFlagsException("bad request");
+            throw new IllegalArgumentException("bad request");
         }
 
         AuthData authToken = dataAccessObject.getAuth(request.authToken());
