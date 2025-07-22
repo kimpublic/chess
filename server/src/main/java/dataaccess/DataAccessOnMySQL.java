@@ -68,7 +68,7 @@ public class DataAccessOnMySQL implements DataAccess {
              var statement = connection.prepareStatement(statementFormat)) {
             statement.setString(1, username);
             try (var response = statement.executeQuery()) {
-                if (!response.next()) return null;
+                if (!response.next()) {return null;}
                 return new UserData(response.getString("username"), response.getString("hashed_password"), response.getString("email"));
             }
         } catch (SQLException e) {
@@ -157,7 +157,16 @@ public class DataAccessOnMySQL implements DataAccess {
 
     @Override
     public int createGame(GameData game) throws DataAccessException {
-        String statementFormat = "INSERT INTO games(game_name, state_json, white_id, black_id, created_at, updated_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
+        String statementFormat = """
+            INSERT INTO games(
+                game_name,
+                state_json,
+                white_id,
+                black_id,
+                created_at,
+                updated_at
+            ) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        """;
         try (var connection = DatabaseManager.getConnection();
              var statement = connection.prepareStatement(statementFormat, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, game.gameName());
@@ -267,7 +276,7 @@ public class DataAccessOnMySQL implements DataAccess {
             statement.setString(1, username);
             try (var response = statement.executeQuery()) {
                 if (response.next()) {return response.getInt("id");}
-                else throw new DataAccessException("User not found: " + username);
+                else {throw new DataAccessException("User not found: " + username);}
             }
         } catch (SQLException e) {
             throw new DataAccessException("Failed to lookup user ID", e);
