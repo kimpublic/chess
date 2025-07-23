@@ -1,22 +1,20 @@
 package service;
 
 import dataaccess.DataAccessException;
-import dataaccess.DataAccessOnMySQL;
+import dataaccess.DataAccessOnMemory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class UserServiceTest {
+public class UserServiceTestOnMemory {
     private UserService service;
-    private DataAccessOnMySQL dataAccessObject;
+    private DataAccessOnMemory dataAccessObject;
 
     @BeforeEach
-    void testSetUp() throws DataAccessException {
-        dataAccessObject = new DataAccessOnMySQL();
+    void testSetUp() {
+        dataAccessObject = new DataAccessOnMemory();
         service = new UserService(dataAccessObject);
-        ClearService service1 = new ClearService(dataAccessObject);
-        service1.clear();
     }
 
     // register 테스트
