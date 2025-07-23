@@ -10,8 +10,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class DataAccessOnMySQLAuthTest {
 
     private DataAccessOnMySQL dataAccessObject;
-    private final String TOKEN = "token";
-    private final String USERNAME = "minjoong";
+    private static final String TOKEN = "token";
+    private static final String USERNAME = "minjoong";
 
     @BeforeEach
     void setUp() throws DataAccessException {
