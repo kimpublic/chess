@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 
 public class ServerFacade {
@@ -164,7 +165,31 @@ public class ServerFacade {
         }
     }
 
-    public
+    @SuppressWarnings("unchecked")
+    public List<Map<String, Object>> listGames() throws Exception {
+        URI uri = new URI((baseUrl + "/game"));
+        HttpURLConnection http = (HttpURLConnection) new URL(uri.toString()).openConnection();
+        http.setRequestMethod("GET");
+        http.addRequestProperty("Authorization", authToken);
+
+        http.connect();
+
+        int status = http.getResponseCode();
+        InputStream is;
+        if (status == 200) {
+            is = http.getInputStream();
+        } else {
+            is = http.getErrorStream();
+        }
+
+        Map<String, Object> response = gson.fromJson(new InputStreamReader(is), Map.class);
+
+        if (status == 200) {
+            return (List<Map<String,Object>>) response.get("games");
+        } else {
+            throw new RuntimeException("Game listing failed: " + response.get("message"));
+        }
+    }
 
 
 }
