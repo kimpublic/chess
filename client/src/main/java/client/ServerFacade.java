@@ -191,5 +191,41 @@ public class ServerFacade {
         }
     }
 
+    public void joinGame(int gameID, String playerColor) throws Exception {
+        URI uri = new URI((baseUrl + "/game"));
+        HttpURLConnection http = (HttpURLConnection) new URL(uri.toString()).openConnection();
+        http.setRequestMethod("PUT");
+        http.setDoOutput(true);
+
+        http.addRequestProperty("Authorization", authToken);
+        http.addRequestProperty("Content-Type", "application/json");
+
+        String body = gson.toJson(Map.of(
+                "gameID", gameID,
+                "playerColor", playerColor
+        ));
+
+        try (OutputStream os = http.getOutputStream()) {
+            os.write(body.getBytes());
+        }
+
+        int status = http.getResponseCode();
+        InputStream is;
+        if (status == 200) {
+            is = http.getInputStream();
+        } else {
+            is = http.getErrorStream();
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> response = gson.fromJson(new InputStreamReader(is), Map.class);
+
+        if (status == 200) {
+            return;
+        } else {
+            throw new RuntimeException("Joining game failed: " + response.get("message"));
+        }
+    }
+
 
 }
