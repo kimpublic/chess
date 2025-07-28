@@ -16,7 +16,7 @@ public class Main {
         String serverUrl = "http://localhost:" + port;
 
         var facade = new ServerFacade(serverUrl);
-        var repl = new Repl(facade);
-        repl.run();
+        var console = new Console(facade);
+        console.run();
     }
 }
