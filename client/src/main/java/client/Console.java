@@ -6,7 +6,6 @@ import java.util.Scanner;
 
 public class Console {
 
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Console.class);
     private final ServerFacade facade;
     private final Scanner scanner = new Scanner(System.in);
 
