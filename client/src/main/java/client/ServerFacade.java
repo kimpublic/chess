@@ -59,7 +59,7 @@ public class ServerFacade {
             this.authToken = (String) response.get("authToken");
             this.currentUsername = (String) response.get("username");
         } else {
-            throw new RuntimeException("Register failed: " + response.get("message"));
+            throw new RuntimeException("Register failed (" + response.get("message") + ")");
         }
     }
 
@@ -94,7 +94,7 @@ public class ServerFacade {
             this.authToken = (String) response.get("authToken");
             this.currentUsername = (String) response.get("username");
         } else {
-            throw new RuntimeException("Login failed: " + response.get("message"));
+            throw new RuntimeException("Login failed (" + response.get("message") + ")");
         }
     }
 
@@ -110,7 +110,7 @@ public class ServerFacade {
             InputStream is = http.getErrorStream();
             @SuppressWarnings("unchecked")
             Map<String, Object> response = gson.fromJson(new InputStreamReader(is), Map.class);
-            throw new RuntimeException("Logout failed: " + response.get("message"));
+            throw new RuntimeException("Logout failed (" + response.get("message") + ")");
         }
 
         this.authToken = null;
@@ -128,7 +128,7 @@ public class ServerFacade {
             InputStream is = http.getErrorStream();
             @SuppressWarnings("unchecked")
             Map<String, Object> response = gson.fromJson(new InputStreamReader(is), Map.class);
-            throw new RuntimeException("Database clearing failed: " + response.get("message"));
+            throw new RuntimeException("Database clearing failed (" + response.get("message") + ")");
         }
     }
 
@@ -161,7 +161,7 @@ public class ServerFacade {
             Double id = (double) response.get("gameID");
             return id.intValue();
         } else {
-            throw new RuntimeException("Game creation failed: " + response.get("message"));
+            throw new RuntimeException("Game creation failed (" + response.get("message") + ")");
         }
     }
 
@@ -187,7 +187,7 @@ public class ServerFacade {
         if (status == 200) {
             return (List<Map<String,Object>>) response.get("games");
         } else {
-            throw new RuntimeException("Game listing failed: " + response.get("message"));
+            throw new RuntimeException("Game listing failed (" + response.get("message") + ")");
         }
     }
 
@@ -223,7 +223,7 @@ public class ServerFacade {
         if (status == 200) {
             return;
         } else {
-            throw new RuntimeException("Joining game failed: " + response.get("message"));
+            throw new RuntimeException("Joining game failed (" + response.get("message") + ")");
         }
     }
 

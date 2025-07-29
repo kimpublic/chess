@@ -29,7 +29,7 @@ public class Console {
             System.out.println("Login as an existing user: \"login\" <USERNAME> <PASSWORD>");
             System.out.println("Register as a new user: \"register\" <USERNAME> <PASSWORD> <EMAIL>");
             System.out.println("Exit the program: \"quit\"");
-            System.out.println("Print this action options page: \"help\"");
+            System.out.println("Print this option page: \"help\"");
         } else if (!gameMode) {
             System.out.println("Options:");
             System.out.println("List current games: \"list\"");
@@ -38,18 +38,23 @@ public class Console {
             System.out.println("Observe a game: \"observe\" <GAME CODE>");
             System.out.println("Logout: \"logout\"");
             System.out.println("Exit the program: \"quit\"");
-            System.out.println("Print this action options page: \"help\"");
+            System.out.println("Print this option page: \"help\"");
         } else {
-
+            System.out.println("gameMode to be implemented");
         }
+    }
+
+    public void drawBoard(String color) {
+
     }
 
     public void run() {
         System.out.print(EscapeSequences.ERASE_SCREEN);
-        System.out.println("Welcome to the Chess game! Sign in or log in with your account to start");
+        System.out.println("Welcome to the Chess game! Sign in or log in with your account to start.");
         help();
 
         while (true) {
+            System.out.print(">>> ");
             String line = scanner.nextLine().trim();
             String[] parsed = line.split(" ", 2);
             cmd = parsed[0];
@@ -65,9 +70,13 @@ public class Console {
                 }
                 case "register": {
                     try {
+                        if (parsed.length != 2) {
+                            System.out.println("Usage: \"register\" <USERNAME> <PASSWORD> <EMAIL>");
+                            break;
+                        }
                         String arguments = parsed[1];
                         String[] argumentsParsed = arguments.split(" ");
-                        if (argumentsParsed.length < 3) {
+                        if (argumentsParsed.length != 3) {
                             System.out.println("Usage: \"register\" <USERNAME> <PASSWORD> <EMAIL>");
                             break;
                         }
@@ -76,14 +85,18 @@ public class Console {
                         System.out.println(">> Registered! You are now logged in.");
                         break;
                     } catch (Exception e) {
-                        System.out.println("Error: " + e.getMessage());
+                        System.out.println(e.getMessage());
                     }
                 }
                 case "login": {
                     try {
+                        if (parsed.length != 2) {
+                            System.out.println("Usage: \"login\" <USERNAME> <PASSWORD>");
+                            break;
+                        }
                         String arguments = parsed[1];
                         String[] argumentsParsed = arguments.split(" ");
-                        if (argumentsParsed.length < 2) {
+                        if (argumentsParsed.length != 2) {
                             System.out.println("Usage: \"login\" <USERNAME> <PASSWORD>");
                             break;
                         }
@@ -93,8 +106,9 @@ public class Console {
                         help();
                         break;
                     } catch (Exception e) {
-                        System.out.println("Error: " + e.getMessage());
+                        System.out.println(e.getMessage());
                     }
+                    break;
                 }
                 case "logout": {
                     if (!loggedIn) {
@@ -105,9 +119,10 @@ public class Console {
                     try {
                         facade.logout();
                         System.out.println(">> You are now logged out. If you need help, type \"help\"");
+                        loggedIn = false;
                         break;
                     } catch (Exception e) {
-                        System.out.println("Error: " + e.getMessage());
+                        System.out.println(e.getMessage());
                     }
                 }
 
@@ -119,8 +134,11 @@ public class Console {
                     }
                     try {
                         indexToGameID.clear();
-                        System.out.println(">> Current Game List: [INDEX]) [GAME CODE] | [GAME NAME] [WHITE PLAYER NAME] [BLACK PLAYER NAME");
+                        System.out.println(">> Current Game List: [INDEX]) [GAME NAME] [WHITE PLAYER NAME] [BLACK PLAYER NAME]");
                         listOfGames = facade.listGames();
+                        if (listOfGames.isEmpty()) {
+                            System.out.println("Currently, there is no game on the list. Create your own with \"create\" [GAME NAME]");
+                        }
                         for (int i = 0; i < listOfGames.size(); i++) {
                             Map<String,Object> game = listOfGames.get(i);
 
@@ -140,16 +158,15 @@ public class Console {
                             indexToGameID.put(indexNumber, gameID);
 
                             System.out.printf(
-                                    ">> %d) %d | %s [White: %s, Black: %s]%n",
+                                    ">> %d) %s [White: %s, Black: %s]%n",
                                     indexNumber,
-                                    gameID,
                                     game.get("gameName"),
                                     white,
                                     black
                             );
                         }
                     } catch (Exception e) {
-                        System.out.println("Error: " + e.getMessage());
+                        System.out.println(e.getMessage());
                     }
                     break;
                 }
@@ -161,14 +178,14 @@ public class Console {
                     }
 
                     try {
-                        if (parsed.length == 1) {
-                            System.out.println("Usage: \"create\" <GAME NAME> <PASSWORD>");
+                        if (parsed.length != 2) {
+                            System.out.println("Usage: \"create\" <GAME NAME>");
                             break;
                         }
                         String gameName = parsed[1];
                         facade.createGame(gameName);
                     } catch (Exception e) {
-                        System.out.println("Error: " + e.getMessage());
+                        System.out.println(e.getMessage());
                     }
                     break;
                 }
@@ -181,7 +198,7 @@ public class Console {
                     String arguments = parsed[1];
                     String[] argumentsParsed = arguments.split(" ");
                     if (argumentsParsed.length != 2) {
-                        System.out.println("Usage: \"join\" <GAME INDEX> <COLOR TO PLAY: \"black\" or \"white\"");
+                        System.out.println("Usage: \"join\" <GAME INDEX> <COLOR TO PLAY: \"black\" or \"white\">");
                         break;
                     }
 
@@ -195,6 +212,7 @@ public class Console {
 
                     if (!indexToGameID.containsKey(gameIndex)) {
                         System.out.println(">> Game index is not valid.");
+                        break;
                     }
 
                     String chosenColor = argumentsParsed[1].toUpperCase();
@@ -202,15 +220,18 @@ public class Console {
                         System.out.println(">> Color should be either white or black.");
                         break;
                     }
-
                     try {
                         int gameID = indexToGameID.get(gameIndex);
                         facade.joinGame(gameID, chosenColor);
-                        System.out.printf(">> You joined the game with index [ %d ]. Game starting ... %n", gameIndex);
+                        System.out.printf(">> You joined the game with index [ %d ]. Game loading ... %n", gameIndex);
+                        gameMode = true;
                         // drawBoard
+                        drawBoard(chosenColor);
+                        break;
                     }  catch (Exception e) {
-                        System.out.println("Error: " + e.getMessage());                    }
-
+                        System.out.println(e.getMessage());
+                    }
+                    break;
                 }
                 case "observe": {
                     if (!loggedIn) {
@@ -219,7 +240,29 @@ public class Console {
                         break;
                     }
 
+                    if (parsed.length != 2) {
+                        System.out.println("Usage: \"observe\" <GAME INDEX>");
+                        break;
+                    }
+
+                    int gameIndex;
+                    try {
+                        gameIndex = Integer.parseInt(parsed[1]);
+                    } catch (NumberFormatException e) {
+                        System.out.println(">> Game index must be in number.");
+                        break;
+                    }
+                    if (!indexToGameID.containsKey(gameIndex)) {
+                        System.out.println(">> Game index is not valid.");
+                        break;
+                    }
+                    System.out.printf(">> You joined the game with index [ %d ] as an observer. Game loading ... %n", gameIndex);
+                    // drawBoard
+                    drawBoard("WHITE");
+                    break;
                 }
+
+                default: System.out.println(">> Unknown command");
                 // 잘못된 커맨드인 경우에도 처리할 수 있도록
             }
 
