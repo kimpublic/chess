@@ -1,11 +1,19 @@
 package client;
 
+import chess.ChessBoard;
+import chess.ChessGame;
+import chess.ChessGame.*;
+import chess.ChessPiece;
+import chess.ChessPiece.*;
+import chess.ChessPosition;
 import ui.EscapeSequences;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+
+import static ui.EscapeSequences.*;
 
 public class Console {
 
@@ -18,6 +26,19 @@ public class Console {
     private List<Map<String,Object>> listOfGames = null;
 
     private Map<Integer,Integer> indexToGameID = new HashMap<>();
+
+    private String[] alphabet = {
+            EMPTY,
+            " A",
+            " B ",
+            " C ",
+            " D ",
+            " E ",
+            " F ",
+            " G ",
+            " H ",
+            EMPTY
+    };
 
     public Console(ServerFacade facade) {
         this.facade = facade;
@@ -44,7 +65,68 @@ public class Console {
         }
     }
 
+    public String returnPieceString(PieceType type, TeamColor color) {
+        switch (type) {
+            case KING:
+                return color == TeamColor.WHITE ? WHITE_KING : BLACK_KING;
+            case QUEEN:
+                return color == TeamColor.WHITE ? WHITE_QUEEN : BLACK_QUEEN;
+            case BISHOP:
+                return color == TeamColor.WHITE ? WHITE_BISHOP : BLACK_BISHOP;
+            case KNIGHT:
+                return color == TeamColor.WHITE ? WHITE_KNIGHT : BLACK_KNIGHT;
+            case ROOK:
+                return color == TeamColor.WHITE ? WHITE_ROOK : BLACK_ROOK;
+            case PAWN:
+                return color == TeamColor.WHITE ? WHITE_PAWN : BLACK_PAWN;
+            default:
+                return EMPTY;
+        }
+    }
+
     public void drawBoard(String color) {
+        boolean ifWhite = "WHITE".equals(color);
+        ChessGame game = new ChessGame();
+
+        ChessBoard board = game.getBoard();
+
+        for (int col = 0; col < 10; col++) {
+            String item = (ifWhite) ? alphabet[col] : alphabet[9 - col];
+            System.out.print(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK + item + RESET_TEXT_COLOR + RESET_BG_COLOR);
+        }
+        System.out.println();
+
+        String bgColor = SET_BG_COLOR_DARK_BEIGE;
+
+        for (int row = 0; row < 8; row++) {
+            int rowIndex = (ifWhite) ? 8 - row : row + 1;
+            String rowString = " " + rowIndex + " ";
+            System.out.print(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK + rowString + RESET_TEXT_COLOR + RESET_BG_COLOR);
+            for (int col = 0; col < 8; col++) {
+                bgColor = (bgColor.equals(SET_BG_COLOR_DARK_BEIGE)) ? SET_BG_COLOR_BEIGE : SET_BG_COLOR_DARK_BEIGE;
+                int colIndex = (ifWhite) ? col + 1 : 8 - col;
+                ChessPosition position = new ChessPosition(rowIndex, colIndex);
+                ChessPiece piece = board.getPiece(position);
+                String pieceColor = SET_TEXT_COLOR_WHITE;
+                String text = EMPTY;
+                if (piece != null) {
+                    TeamColor pieceColorData = piece.getTeamColor();
+                    pieceColor = (pieceColorData.equals(TeamColor.WHITE)) ? SET_TEXT_COLOR_WHITE : SET_TEXT_COLOR_BLACK;
+                    PieceType pieceType = piece.getPieceType();
+                    text = returnPieceString(pieceType, pieceColorData);
+                }
+                System.out.print(bgColor + pieceColor + text + RESET_TEXT_COLOR + RESET_BG_COLOR);
+
+            }
+            bgColor = (bgColor.equals(SET_BG_COLOR_BEIGE)) ? SET_BG_COLOR_DARK_BEIGE : SET_BG_COLOR_BEIGE;
+            System.out.println(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK + rowString + RESET_TEXT_COLOR + RESET_BG_COLOR);
+        }
+
+        for (int col = 0; col < 10; col++) {
+            String item = (ifWhite) ? alphabet[col] : alphabet[9 - col];
+            System.out.print(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLACK + item + RESET_TEXT_COLOR + RESET_BG_COLOR);
+        }
+        System.out.println();
 
     }
 
@@ -261,9 +343,13 @@ public class Console {
                     drawBoard("WHITE");
                     break;
                 }
+                case "draw":
+                    drawBoard("WHITE");
+                    System.out.println();
+                    drawBoard("BLACK");
+                    break;
 
                 default: System.out.println(">> Unknown command");
-                // 잘못된 커맨드인 경우에도 처리할 수 있도록
             }
 
 
