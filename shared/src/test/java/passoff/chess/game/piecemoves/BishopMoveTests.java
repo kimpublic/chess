@@ -2,7 +2,7 @@ package passoff.chess.game.piecemoves;
 
 import chess.ChessPosition;
 import org.junit.jupiter.api.Test;
-import passoff.chess.TestUtilities;
+import passoff.chess.game.TestUtilities;
 
 public class BishopMoveTests {
 
