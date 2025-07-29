@@ -2,6 +2,7 @@ package client;
 
 import ui.EscapeSequences;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -15,6 +16,8 @@ public class Console {
     private boolean gameMode = false;
     private String cmd = "";
     private List<Map<String,Object>> listOfGames = null;
+
+    private Map<Integer,Integer> indexToGameID = new HashMap<>();
 
     public Console(ServerFacade facade) {
         this.facade = facade;
@@ -31,8 +34,8 @@ public class Console {
             System.out.println("Options:");
             System.out.println("List current games: \"list\"");
             System.out.println("Create a new game: \"create\" <GAME NAME>");
-            System.out.println("Join a game: \"join\" <GAME ID> <COLOR TO PLAY: \"black\" or \"white\">");
-            System.out.println("Watch a game: \"watch\" <GAME ID>");
+            System.out.println("Join a game: \"join\" <GAME INDEX> <COLOR TO PLAY: \"black\" or \"white\">");
+            System.out.println("Observe a game: \"observe\" <GAME CODE>");
             System.out.println("Logout: \"logout\"");
             System.out.println("Exit the program: \"quit\"");
             System.out.println("Print this action options page: \"help\"");
@@ -115,7 +118,8 @@ public class Console {
                         break;
                     }
                     try {
-                        System.out.println(">> Current Game List: [GAME ID] [WHITE PLAYER NAME] [BLACK PLAYER NAME");
+                        indexToGameID.clear();
+                        System.out.println(">> Current Game List: [INDEX]) [GAME CODE] | [GAME NAME] [WHITE PLAYER NAME] [BLACK PLAYER NAME");
                         listOfGames = facade.listGames();
                         for (int i = 0; i < listOfGames.size(); i++) {
                             Map<String,Object> game = listOfGames.get(i);
@@ -130,10 +134,15 @@ public class Console {
                                     ? (String)game.get("blackUsername")
                                     : "empty";
 
+                            int indexNumber = i + 1;
+                            int gameID = ((Number) game.get("gameID")).intValue();
+
+                            indexToGameID.put(indexNumber, gameID);
 
                             System.out.printf(
-                                    ">> %d) %s [White: %s, Black: %s]%n",
-                                    i+1,
+                                    ">> %d) %d | %s [White: %s, Black: %s]%n",
+                                    indexNumber,
+                                    gameID,
                                     game.get("gameName"),
                                     white,
                                     black
@@ -169,9 +178,41 @@ public class Console {
                         help();
                         break;
                     }
+                    String arguments = parsed[1];
+                    String[] argumentsParsed = arguments.split(" ");
+                    if (argumentsParsed.length != 2) {
+                        System.out.println("Usage: \"join\" <GAME INDEX> <COLOR TO PLAY: \"black\" or \"white\"");
+                        break;
+                    }
+
+                    int gameIndex;
+                    try {
+                        gameIndex = Integer.parseInt(argumentsParsed[0]);
+                    } catch (NumberFormatException e) {
+                        System.out.println(">> Game index must be in number.");
+                        break;
+                    }
+
+                    if (!indexToGameID.containsKey(gameIndex)) {
+                        System.out.println(">> Game index is not valid.");
+                    }
+
+                    String chosenColor = argumentsParsed[1].toUpperCase();
+                    if (!chosenColor.equals("WHITE") && !chosenColor.equals("BLACK")) {
+                        System.out.println(">> Color should be either white or black.");
+                        break;
+                    }
+
+                    try {
+                        int gameID = indexToGameID.get(gameIndex);
+                        facade.joinGame(gameID, chosenColor);
+                        System.out.printf(">> You joined the game with index [ %d ]. Game starting ... %n", gameIndex);
+                        // drawBoard
+                    }  catch (Exception e) {
+                        System.out.println("Error: " + e.getMessage());                    }
 
                 }
-                case "watch": {
+                case "observe": {
                     if (!loggedIn) {
                         System.out.println(">> You are not logged in. Check the options");
                         help();
