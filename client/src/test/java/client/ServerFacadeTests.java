@@ -18,7 +18,7 @@ public class ServerFacadeTests {
     public static void init() {
 
         server = new Server();
-        int port = server.run(3000);
+        int port = server.run(0);
 
         String serverUrl = "http://localhost:" + port;
         facade = new ServerFacade(serverUrl);
