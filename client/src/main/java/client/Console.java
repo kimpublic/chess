@@ -130,6 +130,134 @@ public class Console {
 
     }
 
+    private void handleRegister(String[] parsed) {
+        try {
+            if (parsed.length != 2) {
+                System.out.println("Usage: \"register\" <USERNAME> <PASSWORD> <EMAIL>");
+                return;
+            }
+            String arguments = parsed[1];
+            String[] argumentsParsed = arguments.split(" ");
+            if (argumentsParsed.length != 3) {
+                System.out.println("Usage: \"register\" <USERNAME> <PASSWORD> <EMAIL>");
+                return;
+            }
+            facade.register(argumentsParsed[0], argumentsParsed[1], argumentsParsed[2]);
+            loggedIn = true;
+            System.out.println(">> Registered! You are now logged in.");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void handleLogin(String[] parsed) {
+        try {
+            if (parsed.length != 2) {
+                System.out.println("Usage: \"login\" <USERNAME> <PASSWORD>");
+                return;
+            }
+            String arguments = parsed[1];
+            String[] argumentsParsed = arguments.split(" ");
+            if (argumentsParsed.length != 2) {
+                System.out.println("Usage: \"login\" <USERNAME> <PASSWORD>");
+                return;
+            }
+            facade.login(argumentsParsed[0], argumentsParsed[1]);
+            loggedIn = true;
+            System.out.println(">> You are now logged in.");
+            help();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void handleList() {
+        if (!loggedIn) {
+            System.out.println(">> You are not logged in. Check the options");
+            help();
+            return;
+        }
+        try {
+            indexToGameID.clear();
+            System.out.println(">> Current Game List: [INDEX]) [GAME NAME] [WHITE PLAYER NAME] [BLACK PLAYER NAME]");
+            listOfGames = facade.listGames();
+            if (listOfGames.isEmpty()) {
+                System.out.println("Currently, there is no game on the list. Create your own with \"create\" [GAME NAME]");
+            }
+            for (int i = 0; i < listOfGames.size(); i++) {
+                Map<String, Object> game = listOfGames.get(i);
+
+                String white = game.get("whiteUsername") != null
+                        && !((String) game.get("whiteUsername")).isBlank()
+                        ? (String) game.get("whiteUsername")
+                        : "empty";
+
+                String black = game.get("blackUsername") != null
+                        && !((String) game.get("blackUsername")).isBlank()
+                        ? (String) game.get("blackUsername")
+                        : "empty";
+
+                int indexNumber = i + 1;
+                int gameID = ((Number) game.get("gameID")).intValue();
+
+                indexToGameID.put(indexNumber, gameID);
+
+                System.out.printf(
+                        ">> %d) %s [White: %s, Black: %s]%n",
+                        indexNumber,
+                        game.get("gameName"),
+                        white,
+                        black
+                );
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void handleLogout() {
+        if (!loggedIn) {
+            System.out.println(">> You are not logged in. Check the options");
+            help();
+            return;
+        }
+        try {
+            facade.logout();
+            System.out.println(">> You are now logged out. If you need help, type \"help\"");
+            loggedIn = false;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void handleObserve(String[] parsed) {
+        if (!loggedIn) {
+            System.out.println(">> You are not logged in. Check the options");
+            help();
+            return;
+        }
+
+        if (parsed.length != 2) {
+            System.out.println("Usage: \"observe\" <GAME INDEX>");
+            return;
+        }
+
+        int gameIndex;
+        try {
+            gameIndex = Integer.parseInt(parsed[1]);
+        } catch (NumberFormatException e) {
+            System.out.println(">> Game index must be in number.");
+            return;
+        }
+        if (!indexToGameID.containsKey(gameIndex)) {
+            System.out.println(">> Game index is not valid.");
+            return;
+        }
+        System.out.printf(">> You joined the game with index [ %d ] as an observer. Game loading ... %n", gameIndex);
+        // drawBoard
+        drawBoard("WHITE");
+    }
+
     public void run() {
         System.out.print(EscapeSequences.ERASE_SCREEN);
         System.out.println("Welcome to the Chess game! Sign in or log in with your account to start.");
@@ -151,105 +279,19 @@ public class Console {
                     break;
                 }
                 case "register": {
-                    try {
-                        if (parsed.length != 2) {
-                            System.out.println("Usage: \"register\" <USERNAME> <PASSWORD> <EMAIL>");
-                            break;
-                        }
-                        String arguments = parsed[1];
-                        String[] argumentsParsed = arguments.split(" ");
-                        if (argumentsParsed.length != 3) {
-                            System.out.println("Usage: \"register\" <USERNAME> <PASSWORD> <EMAIL>");
-                            break;
-                        }
-                        facade.register(argumentsParsed[0], argumentsParsed[1], argumentsParsed[2]);
-                        loggedIn = true;
-                        System.out.println(">> Registered! You are now logged in.");
-                        break;
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                    }
+                    handleRegister(parsed);
+                    break;
                 }
                 case "login": {
-                    try {
-                        if (parsed.length != 2) {
-                            System.out.println("Usage: \"login\" <USERNAME> <PASSWORD>");
-                            break;
-                        }
-                        String arguments = parsed[1];
-                        String[] argumentsParsed = arguments.split(" ");
-                        if (argumentsParsed.length != 2) {
-                            System.out.println("Usage: \"login\" <USERNAME> <PASSWORD>");
-                            break;
-                        }
-                        facade.login(argumentsParsed[0], argumentsParsed[1]);
-                        loggedIn = true;
-                        System.out.println(">> You are now logged in.");
-                        help();
-                        break;
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                    }
+                    handleLogin(parsed);
                     break;
                 }
                 case "logout": {
-                    if (!loggedIn) {
-                        System.out.println(">> You are not logged in. Check the options");
-                        help();
-                        break;
-                    }
-                    try {
-                        facade.logout();
-                        System.out.println(">> You are now logged out. If you need help, type \"help\"");
-                        loggedIn = false;
-                        break;
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                    }
+                    handleLogout();
+                    break;
                 }
-
                 case "list": {
-                    if (!loggedIn) {
-                        System.out.println(">> You are not logged in. Check the options");
-                        help();
-                        break;
-                    }
-                    try {
-                        indexToGameID.clear();
-                        System.out.println(">> Current Game List: [INDEX]) [GAME NAME] [WHITE PLAYER NAME] [BLACK PLAYER NAME]");
-                        listOfGames = facade.listGames();
-                        if (listOfGames.isEmpty()) {
-                            System.out.println("Currently, there is no game on the list. Create your own with \"create\" [GAME NAME]");
-                        }
-                        for (int i = 0; i < listOfGames.size(); i++) {
-                            Map<String, Object> game = listOfGames.get(i);
-
-                            String white = game.get("whiteUsername") != null
-                                    && !((String) game.get("whiteUsername")).isBlank()
-                                    ? (String) game.get("whiteUsername")
-                                    : "empty";
-
-                            String black = game.get("blackUsername") != null
-                                    && !((String) game.get("blackUsername")).isBlank()
-                                    ? (String) game.get("blackUsername")
-                                    : "empty";
-
-                            int indexNumber = i + 1;
-                            int gameID = ((Number) game.get("gameID")).intValue();
-
-                            indexToGameID.put(indexNumber, gameID);
-
-                            System.out.printf(
-                                    ">> %d) %s [White: %s, Black: %s]%n",
-                                    indexNumber,
-                                    game.get("gameName"),
-                                    white,
-                                    black
-                            );
-                        }
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                    }
+                    handleList();
                     break;
                 }
                 case "create": {
@@ -266,10 +308,11 @@ public class Console {
                         }
                         String gameName = parsed[1];
                         facade.createGame(gameName);
+                        System.out.println(">> Game created.");
+                        break;
                     } catch (Exception e) {
                         System.out.println(e.getMessage());
                     }
-                    break;
                 }
                 case "join": {
                     if (!loggedIn) {
@@ -316,31 +359,7 @@ public class Console {
                     break;
                 }
                 case "observe": {
-                    if (!loggedIn) {
-                        System.out.println(">> You are not logged in. Check the options");
-                        help();
-                        break;
-                    }
-
-                    if (parsed.length != 2) {
-                        System.out.println("Usage: \"observe\" <GAME INDEX>");
-                        break;
-                    }
-
-                    int gameIndex;
-                    try {
-                        gameIndex = Integer.parseInt(parsed[1]);
-                    } catch (NumberFormatException e) {
-                        System.out.println(">> Game index must be in number.");
-                        break;
-                    }
-                    if (!indexToGameID.containsKey(gameIndex)) {
-                        System.out.println(">> Game index is not valid.");
-                        break;
-                    }
-                    System.out.printf(">> You joined the game with index [ %d ] as an observer. Game loading ... %n", gameIndex);
-                    // drawBoard
-                    drawBoard("WHITE");
+                    handleObserve(parsed);
                     break;
                 }
                 case "draw": {
@@ -354,16 +373,21 @@ public class Console {
                 case "leave": {
                     if (gameMode) {
                         gameMode = false;
+                        System.out.println(">> You left the game.");
+                        break;
                     }
                     else {
                         System.out.println("You are not playing a game.");
+                        break;
                     }
                 }
                 case "clear": {
                     try {
                         facade.clearDatabase();
+                        break;
                     } catch (Exception e) {
                         System.out.println(e.getMessage());
+                        break;
                     }
                 }
                 // need to delete these two later
