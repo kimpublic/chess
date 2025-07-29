@@ -2,6 +2,8 @@ package client;
 
 import ui.EscapeSequences;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Console {
@@ -12,6 +14,7 @@ public class Console {
     private boolean loggedIn = false;
     private boolean gameMode = false;
     private String cmd = "";
+    private List<Map<String,Object>> listOfGames = null;
 
     public Console(ServerFacade facade) {
         this.facade = facade;
@@ -106,15 +109,67 @@ public class Console {
                 }
 
                 case "list": {
+                    if (!loggedIn) {
+                        System.out.println(">> You are not logged in. Check the options");
+                        help();
+                        break;
+                    }
+                    try {
+                        System.out.println(">> Current Game List: [GAME ID] [WHITE PLAYER NAME] [BLACK PLAYER NAME");
+                        listOfGames = facade.listGames();
+                        for (int i = 0; i < listOfGames.size(); i++) {
+                            Map<String,Object> game = listOfGames.get(i);
 
+                            String white = game.get("whiteUsername") != null
+                                    && !((String)game.get("whiteUsername")).isBlank()
+                                    ? (String)game.get("whiteUsername")
+                                    : "empty";
+
+                            String black = game.get("blackUsername") != null
+                                    && !((String)game.get("blackUsername")).isBlank()
+                                    ? (String)game.get("blackUsername")
+                                    : "empty";
+
+
+                            System.out.printf(
+                                    ">> %d) %s [White: %s, Black: %s]%n",
+                                    i+1,
+                                    game.get("gameName"),
+                                    white,
+                                    black
+                            );
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Error: " + e.getMessage());
+                    }
+                    break;
                 }
                 case "create": {
+                    if (!loggedIn) {
+                        System.out.println(">> You are not logged in. Check the options");
+                        help();
+                        break;
+                    }
+
+                    try {
+
+                    }
 
                 }
                 case "join": {
+                    if (!loggedIn) {
+                        System.out.println(">> You are not logged in. Check the options");
+                        help();
+                        break;
+                    }
 
                 }
                 case "watch": {
+                    if (!loggedIn) {
+                        System.out.println(">> You are not logged in. Check the options");
+                        help();
+                        break;
+                    }
 
                 }
                 // 잘못된 커맨드인 경우에도 처리할 수 있도록
