@@ -28,16 +28,16 @@ public class Console {
     private Map<Integer,Integer> indexToGameID = new HashMap<>();
 
     private String[] alphabet = {
-            EMPTY,
-            " A",
-            " B ",
-            " C ",
-            " D ",
-            " E ",
-            " F ",
-            " G ",
-            " H ",
-            EMPTY
+            "   ",
+            "\u2003A ",
+            "\u2003B ",
+            "\u2003C ",
+            "\u2003D ",
+            "\u2003E ",
+            "\u2003F ",
+            "\u2003G ",
+            "\u2003H ",
+            "   "
     };
 
     public Console(ServerFacade facade) {
@@ -222,16 +222,16 @@ public class Console {
                             System.out.println("Currently, there is no game on the list. Create your own with \"create\" [GAME NAME]");
                         }
                         for (int i = 0; i < listOfGames.size(); i++) {
-                            Map<String,Object> game = listOfGames.get(i);
+                            Map<String, Object> game = listOfGames.get(i);
 
                             String white = game.get("whiteUsername") != null
-                                    && !((String)game.get("whiteUsername")).isBlank()
-                                    ? (String)game.get("whiteUsername")
+                                    && !((String) game.get("whiteUsername")).isBlank()
+                                    ? (String) game.get("whiteUsername")
                                     : "empty";
 
                             String black = game.get("blackUsername") != null
-                                    && !((String)game.get("blackUsername")).isBlank()
-                                    ? (String)game.get("blackUsername")
+                                    && !((String) game.get("blackUsername")).isBlank()
+                                    ? (String) game.get("blackUsername")
                                     : "empty";
 
                             int indexNumber = i + 1;
@@ -310,7 +310,7 @@ public class Console {
                         // drawBoard
                         drawBoard(chosenColor);
                         break;
-                    }  catch (Exception e) {
+                    } catch (Exception e) {
                         System.out.println(e.getMessage());
                     }
                     break;
@@ -343,16 +343,33 @@ public class Console {
                     drawBoard("WHITE");
                     break;
                 }
-                case "draw":
+                case "draw": {
                     drawBoard("WHITE");
                     System.out.println();
                     drawBoard("BLACK");
                     break;
+                }
+
+                // these are for develop
+                case "leave": {
+                    if (gameMode) {
+                        gameMode = false;
+                    }
+                    else {
+                        System.out.println("You are not playing a game.");
+                    }
+                }
+                case "clear": {
+                    try {
+                        facade.clearDatabase();
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
+                    }
+                }
+                // need to delete these two later
 
                 default: System.out.println(">> Unknown command");
             }
-
-
         }
 
     }
