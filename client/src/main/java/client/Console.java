@@ -258,6 +258,69 @@ public class Console {
         drawBoard("WHITE");
     }
 
+    private void handleCreate(String[] parsed) {
+        if (!loggedIn) {
+            System.out.println(">> You are not logged in. Check the options");
+            help();
+            return;
+        }
+
+        try {
+            if (parsed.length != 2) {
+                System.out.println("Usage: \"create\" <GAME NAME>");
+                return;
+            }
+            String gameName = parsed[1];
+            facade.createGame(gameName);
+            System.out.println(">> Game created.");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void handleJoin(String[] parsed) {
+        if (!loggedIn) {
+            System.out.println(">> You are not logged in. Check the options");
+            help();
+            return;
+        }
+        String arguments = parsed[1];
+        String[] argumentsParsed = arguments.split(" ");
+        if (argumentsParsed.length != 2) {
+            System.out.println("Usage: \"join\" <GAME INDEX> <COLOR TO PLAY: \"black\" or \"white\">");
+            return;
+        }
+
+        int gameIndex;
+        try {
+            gameIndex = Integer.parseInt(argumentsParsed[0]);
+        } catch (NumberFormatException e) {
+            System.out.println(">> Game index must be in number.");
+            return;
+        }
+
+        if (!indexToGameID.containsKey(gameIndex)) {
+            System.out.println(">> Game index is not valid.");
+            return;
+        }
+
+        String chosenColor = argumentsParsed[1].toUpperCase();
+        if (!chosenColor.equals("WHITE") && !chosenColor.equals("BLACK")) {
+            System.out.println(">> Color should be either white or black.");
+            return;
+        }
+        try {
+            int gameID = indexToGameID.get(gameIndex);
+            facade.joinGame(gameID, chosenColor);
+            System.out.printf(">> You joined the game with index [ %d ]. Game loading ... %n", gameIndex);
+            gameMode = true;
+            // drawBoard
+            drawBoard(chosenColor);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     public void run() {
         System.out.print(EscapeSequences.ERASE_SCREEN);
         System.out.println("Welcome to the Chess game! Sign in or log in with your account to start.");
@@ -295,67 +358,11 @@ public class Console {
                     break;
                 }
                 case "create": {
-                    if (!loggedIn) {
-                        System.out.println(">> You are not logged in. Check the options");
-                        help();
-                        break;
-                    }
-
-                    try {
-                        if (parsed.length != 2) {
-                            System.out.println("Usage: \"create\" <GAME NAME>");
-                            break;
-                        }
-                        String gameName = parsed[1];
-                        facade.createGame(gameName);
-                        System.out.println(">> Game created.");
-                        break;
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                    }
+                    handleCreate(parsed);
+                    break;
                 }
                 case "join": {
-                    if (!loggedIn) {
-                        System.out.println(">> You are not logged in. Check the options");
-                        help();
-                        break;
-                    }
-                    String arguments = parsed[1];
-                    String[] argumentsParsed = arguments.split(" ");
-                    if (argumentsParsed.length != 2) {
-                        System.out.println("Usage: \"join\" <GAME INDEX> <COLOR TO PLAY: \"black\" or \"white\">");
-                        break;
-                    }
-
-                    int gameIndex;
-                    try {
-                        gameIndex = Integer.parseInt(argumentsParsed[0]);
-                    } catch (NumberFormatException e) {
-                        System.out.println(">> Game index must be in number.");
-                        break;
-                    }
-
-                    if (!indexToGameID.containsKey(gameIndex)) {
-                        System.out.println(">> Game index is not valid.");
-                        break;
-                    }
-
-                    String chosenColor = argumentsParsed[1].toUpperCase();
-                    if (!chosenColor.equals("WHITE") && !chosenColor.equals("BLACK")) {
-                        System.out.println(">> Color should be either white or black.");
-                        break;
-                    }
-                    try {
-                        int gameID = indexToGameID.get(gameIndex);
-                        facade.joinGame(gameID, chosenColor);
-                        System.out.printf(">> You joined the game with index [ %d ]. Game loading ... %n", gameIndex);
-                        gameMode = true;
-                        // drawBoard
-                        drawBoard(chosenColor);
-                        break;
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                    }
+                    handleJoin(parsed);
                     break;
                 }
                 case "observe": {
