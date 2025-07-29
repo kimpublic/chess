@@ -152,9 +152,16 @@ public class Console {
                     }
 
                     try {
-
+                        if (parsed.length == 1) {
+                            System.out.println("Usage: \"create\" <GAME NAME> <PASSWORD>");
+                            break;
+                        }
+                        String gameName = parsed[1];
+                        facade.createGame(gameName);
+                    } catch (Exception e) {
+                        System.out.println("Error: " + e.getMessage());
                     }
-
+                    break;
                 }
                 case "join": {
                     if (!loggedIn) {
