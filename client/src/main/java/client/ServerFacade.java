@@ -2,6 +2,7 @@ package client;
 
 import com.google.gson.Gson;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -26,6 +27,17 @@ public class ServerFacade {
         return this.currentUsername;
     }
 
+    public InputStream returnInputStream(HttpURLConnection http) throws IOException {
+        int status = http.getResponseCode();
+        InputStream is;
+        if (status == 200) {
+            is = http.getInputStream();
+        } else {
+            is = http.getErrorStream();
+        }
+        return is;
+    }
+
     public void register(String username, String password, String email) throws Exception {
         URI uri = new URI(baseUrl + "/user");
         HttpURLConnection http = (HttpURLConnection) new URL(uri.toString()).openConnection();
@@ -45,12 +57,7 @@ public class ServerFacade {
         }
 
         int status = http.getResponseCode();
-        InputStream is;
-        if (status == 200) {
-            is = http.getInputStream();
-        } else {
-            is = http.getErrorStream();
-        }
+        InputStream is = returnInputStream(http);
 
         @SuppressWarnings("unchecked")
         Map<String, Object> response = gson.fromJson(new InputStreamReader(is), Map.class);
@@ -80,12 +87,7 @@ public class ServerFacade {
         }
 
         int status = http.getResponseCode();
-        InputStream is;
-        if (status == 200) {
-            is = http.getInputStream();
-        } else {
-            is = http.getErrorStream();
-        }
+        InputStream is = returnInputStream(http);
 
         @SuppressWarnings("unchecked")
         Map<String, Object> response = gson.fromJson(new InputStreamReader(is), Map.class);
