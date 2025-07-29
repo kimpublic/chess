@@ -1,8 +1,8 @@
-package passoff.chess.game.piecemoves;
+package passoff.chess.piecemoves;
 
 import chess.ChessPosition;
 import org.junit.jupiter.api.Test;
-import passoff.chess.game.TestUtilities;
+import passoff.chess.TestUtilities;
 
 public class BishopMoveTests {
 

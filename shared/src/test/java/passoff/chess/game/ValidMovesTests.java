@@ -6,7 +6,7 @@ import chess.ChessPosition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import passoff.chess.game.TestUtilities;
+import passoff.chess.TestUtilities;
 
 import java.util.ArrayList;
 import java.util.List;
