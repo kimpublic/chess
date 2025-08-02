@@ -22,6 +22,7 @@ public class Console {
 
     private boolean loggedIn = false;
     private boolean gameMode = false;
+    private boolean observeMode = false;
     private String cmd = "";
     private List<Map<String,Object>> listOfGames = null;
 
@@ -51,7 +52,21 @@ public class Console {
             System.out.println("Register as a new user: \"register\" <USERNAME> <PASSWORD> <EMAIL>");
             System.out.println("Exit the program: \"quit\"");
             System.out.println("Print this option page: \"help\"");
-        } else if (!gameMode) {
+        } else if (gameMode) {
+            System.out.println("Options:");
+            System.out.println("Redraw the chess board: \"redraw\"");
+            System.out.println("Leave the current game you are in: \"leave\"");
+            System.out.println("Make a move of a peace: \"move\" <START POSITION> <DESTINATION>");
+            System.out.println("Resign: \"resign\"");
+            System.out.println("Highlight legal moves of a piece: \"highlight\" <PIECE LOCATION>");
+            System.out.println("Print this option page: \"help\"");
+        } else if (observeMode) {
+            System.out.println("Options:");
+            System.out.println("Redraw the chess board: \"redraw\"");
+            System.out.println("Leave the current game you are in: \"leave\"");
+            System.out.println("Print this option page: \"help\"");
+        }
+        else {
             System.out.println("Options:");
             System.out.println("List current games: \"list\"");
             System.out.println("Create a new game: \"create\" <GAME NAME>");
@@ -59,14 +74,6 @@ public class Console {
             System.out.println("Observe a game: \"observe\" <GAME CODE>");
             System.out.println("Logout: \"logout\"");
             System.out.println("Exit the program: \"quit\"");
-            System.out.println("Print this option page: \"help\"");
-        } else {
-            System.out.println("Options:");
-            System.out.println("Redraw the chess board: \"redraw\"");
-            System.out.println("Leave the current game you are in: \"leave\"");
-            System.out.println("Make a move of a peace: \"move\" <START POSITION> <DESTINATION>");
-            System.out.println("Resign: \"resign\"");
-            System.out.println("Highlight legal moves of a piece: \"highlight\" <PIECE LOCATION>");
             System.out.println("Print this option page: \"help\"");
         }
     }
@@ -262,6 +269,7 @@ public class Console {
         System.out.printf(">> You joined the game with index [ %d ] as an observer. Game loading ... %n", gameIndex);
         // drawBoard
         drawBoard("WHITE");
+        observeMode = true;
     }
 
     private void handleCreate(String[] parsed) {
@@ -384,13 +392,18 @@ public class Console {
 
                 // these are for develop
                 case "leave": {
-                    if (gameMode) {
-                        gameMode = false;
+                    if (gameMode || observeMode) {
+                        if (gameMode) {
+                            gameMode = false;
+                        }
+                        if (observeMode) {
+                            observeMode = false;
+                        }
                         System.out.println(">> You left the game.");
                         break;
                     }
                     else {
-                        System.out.println("You are not playing a game.");
+                        System.out.println("You are not in the game room.");
                         break;
                     }
                 }
