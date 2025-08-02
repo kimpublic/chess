@@ -61,7 +61,13 @@ public class Console {
             System.out.println("Exit the program: \"quit\"");
             System.out.println("Print this option page: \"help\"");
         } else {
-            System.out.println("gameMode to be implemented");
+            System.out.println("Options:");
+            System.out.println("Redraw the chess board: \"redraw\"");
+            System.out.println("Leave the current game you are in: \"leave\"");
+            System.out.println("Make a move of a peace: \"move\" <START POSITION> <DESTINATION>");
+            System.out.println("Resign: \"resign\"");
+            System.out.println("Highlight legal moves of a piece: \"highlight\" <PIECE LOCATION>");
+            System.out.println("Print this option page: \"help\"");
         }
     }
 
