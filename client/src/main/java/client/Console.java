@@ -63,6 +63,7 @@ public class Console {
         } else if (observeMode) {
             System.out.println("Options:");
             System.out.println("Redraw the chess board: \"redraw\"");
+            System.out.println("Highlight legal moves of a piece: \"highlight\" <PIECE LOCATION>");
             System.out.println("Leave the current game you are in: \"leave\"");
             System.out.println("Print this option page: \"help\"");
         }
