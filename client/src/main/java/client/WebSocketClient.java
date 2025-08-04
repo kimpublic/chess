@@ -36,7 +36,6 @@ public class WebSocketClient {
             case LOAD_GAME:
                 LoadGameMessage loadGame = gson.fromJson(msg, LoadGameMessage.class);
                 System.out.println("Received updated game information. Redrawing the board...");
-                Console.redrawBoard(loadGame.getGame());
                 // TODO
                 break;
             case ERROR:

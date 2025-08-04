@@ -106,6 +106,7 @@ public class DatabaseManager {
                 state_json TEXT,
                 white_id INT,
                 black_id INT,
+                is_over BOOLEAN DEFAULT FALSE,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (white_id) REFERENCES users(id),

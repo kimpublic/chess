@@ -6,6 +6,7 @@ import service.GameService;
 import service.UserService;
 import spark.Spark;
 import dataaccess.DatabaseManager;
+import server.WebSocketServer;
 
 
 import static spark.Spark.*;
@@ -34,6 +35,8 @@ public class Server {
         var gameService = new GameService(dataAccessObject);
 
         // Register your endpoints and handle exceptions here.
+
+        webSocket("/ws", new WebSocketServer(gameService, userService));
 
         delete("/db", new ClearHandler(clearService));
 

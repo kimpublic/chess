@@ -75,5 +75,9 @@ public class UserService {
         dataAccessObject.deleteAuth(request.authToken());
     }
 
+    public String getUsername(String authToken) throws DataAccessException {
+        return dataAccessObject.lookupUsernameWithAuth(authToken);
+    }
+
 
 }

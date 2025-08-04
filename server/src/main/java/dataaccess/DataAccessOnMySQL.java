@@ -193,7 +193,8 @@ public class DataAccessOnMySQL implements DataAccess {
                 game.game_name,
                 game.state_json,
                 white.username AS whiteUsername,
-                black.username AS blackUsername
+                black.username AS blackUsername,
+                game.is_over
             FROM games game
             LEFT JOIN users white ON game.white_id = white.id
             LEFT JOIN users black ON game.black_id = black.id
@@ -211,7 +212,8 @@ public class DataAccessOnMySQL implements DataAccess {
                         response.getString("whiteUsername"),
                         response.getString("blackUsername"),
                         response.getString("game_name"),
-                        game
+                        game,
+                        response.getBoolean("is_over")
                 );
             }
         } catch (SQLException e) {
@@ -227,10 +229,11 @@ public class DataAccessOnMySQL implements DataAccess {
                 game.game_name,
                 game.state_json,
                 white.username AS whiteUsername,
-                black.username AS blackUsername
+                black.username AS blackUsername,
             FROM games game
             LEFT JOIN users white ON game.white_id = white.id
             LEFT JOIN users black ON game.black_id = black.id
+            WHERE game.is_over = FALSE
         """;
         Collection<GameData> games = new ArrayList<>();
         try (var connection = DatabaseManager.getConnection();
@@ -243,7 +246,8 @@ public class DataAccessOnMySQL implements DataAccess {
                         response.getString("whiteUsername"),
                         response.getString("blackUsername"),
                         response.getString("game_name"),
-                        game
+                        game,
+                        response.getBoolean("is_over")
                 ));
             }
             return games;
@@ -254,7 +258,7 @@ public class DataAccessOnMySQL implements DataAccess {
 
     @Override
     public void updateGame(GameData game) throws DataAccessException {
-        String statementFormat = "UPDATE games SET state_json = ?, white_id = ?, black_id = ? WHERE game_id = ?";
+        String statementFormat = "UPDATE games SET state_json = ?, white_id = ?, black_id = ?, is_over = ? WHERE game_id = ?";
         try (var connection = DatabaseManager.getConnection();
              var statement = connection.prepareStatement(statementFormat)) {
             statement.setString(1, gson.toJson(game.game()));
@@ -262,7 +266,8 @@ public class DataAccessOnMySQL implements DataAccess {
             else {statement.setNull(2, Types.INTEGER);}
             if (game.blackUsername() != null) {statement.setInt(3, lookupUserId(connection, game.blackUsername()));}
             else {statement.setNull(3, Types.INTEGER);}
-            statement.setInt(4, game.gameID());
+            statement.setBoolean(4, game.isOver());
+            statement.setInt(5, game.gameID());
             int updatedNumbers = statement.executeUpdate();
             if (updatedNumbers == 0) {throw new DataAccessException("game does not exist");}
         } catch (SQLException e) {
@@ -281,6 +286,11 @@ public class DataAccessOnMySQL implements DataAccess {
         } catch (SQLException e) {
             throw new DataAccessException("Failed to lookup user ID", e);
         }
+    }
+
+    public String lookupUsernameWithAuth(String authToken) throws DataAccessException {
+        AuthData auth = getAuth(authToken);
+        return auth != null ? auth.username() : null;
     }
 
 

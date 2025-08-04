@@ -17,6 +17,8 @@ public class Main {
 
         var facade = new ServerFacade(serverUrl);
         var console = new Console(facade);
+
+
         console.run();
     }
 }
