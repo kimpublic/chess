@@ -12,12 +12,19 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jetty.websocket.client.WebSocketClient;
+import client.WebSocketHandler;
+
+
 public class ServerFacade {
 
     private final String baseUrl;
     private final Gson gson = new Gson();
     private String authToken;
     private String currentUsername;
+
+    private org.eclipse.jetty.websocket.client.WebSocketClient jettyWsClient;
+    private WebSocketHandler wsHandler;
 
     public ServerFacade(String url) {
         this.baseUrl = url;

@@ -14,12 +14,12 @@ import java.util.logging.Logger;
 
 
 @WebSocket
-public class WebSocketClient {
+public class WebSocketHandler {
 
     private Session session;
     private final Gson gson = new Gson();
 
-    private static final Logger logger = Logger.getLogger(WebSocketClient.class.getName());
+    private static final Logger logger = Logger.getLogger(WebSocketHandler.class.getName());
 
     @OnWebSocketConnect
     public void connectionConfirmed(Session session) {
