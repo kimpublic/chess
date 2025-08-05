@@ -12,8 +12,8 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jetty.websocket.client.WebSocketClient;
-import client.WebSocketHandler;
+import javax.websocket.*;
+import websocket.commands.UserGameCommand;
 
 
 public class ServerFacade {
@@ -23,8 +23,10 @@ public class ServerFacade {
     private String authToken;
     private String currentUsername;
 
-    private org.eclipse.jetty.websocket.client.WebSocketClient jettyWsClient;
-    private WebSocketHandler wsHandler;
+    private WebSocketContainer wsContainer;
+    private Session session;
+    private WebSocketHandler2 wsHandler;
+    private Console console;
 
     public ServerFacade(String url) {
         this.baseUrl = url;
@@ -234,6 +236,33 @@ public class ServerFacade {
         } else {
             throw new RuntimeException("Joining game failed (" + response.get("message") + ")");
         }
+    }
+
+    public void connectWebSocket(Console console) throws Exception {
+        this.console = console;
+
+        if (session != null && session.isOpen()) {
+            return;
+        }
+        wsContainer = ContainerProvider.getWebSocketContainer();
+        wsHandler   = new WebSocketHandler2(this.console);
+
+        // http://localhost:포트 → ws://localhost:포트/ws
+        String wsUrl = baseUrl.replaceFirst("^http", "ws") + "/ws";
+        session = wsContainer.connectToServer(wsHandler, new URI(wsUrl));
+        System.out.println("WebSocket connected: " + wsUrl);
+    }
+
+    public void sendGameCommand(UserGameCommand cmd) {
+        if (session != null && session.isOpen()) {
+            wsHandler.send(cmd);
+        } else {
+            System.err.println("No WebSocket connection found. failed sending game command. ");
+        }
+    }
+
+    public String getAuthToken() {
+        return this.authToken;
     }
 
 

@@ -62,7 +62,7 @@ public class DataAccessOnMemory implements DataAccess {
     @Override
     public int createGame(GameData game) throws DataAccessException {
         int gameID = ++gameIDTracker;
-        GameData gameStored = new GameData(gameID, game.whiteUsername(), game.blackUsername(), game.gameName(), game.game());
+        GameData gameStored = new GameData(gameID, game.whiteUsername(), game.blackUsername(), game.gameName(), game.game(), false);
         gameData.put(gameID, gameStored);
         return gameID;
     }
@@ -83,6 +83,10 @@ public class DataAccessOnMemory implements DataAccess {
             throw new DataAccessException("game not found");
         }
         gameData.put(game.gameID(), game);
+    }
+
+    public String lookupUsernameWithAuth(String authToken) throws DataAccessException {
+        return  authToken;
     }
 
 }

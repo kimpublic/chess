@@ -76,7 +76,8 @@ public class WebSocketServer {
     private void handleMove(Session session, UserGameCommand command) throws DataAccessException {
         gameService.makeMove(command.getGameID(), command.getMove());
         ChessGame updatedGame = gameService.getGame(command.getGameID()).game();
-        broadcastToOthers(session, currentGameID, new LoadGameMessage(updatedGame));
+        broadcastToAll(currentGameID, new LoadGameMessage(updatedGame));
+        broadcastToOthers(session, currentGameID, new NotificationMessage(command.getMove().getStartPosition() + "moved to " + command.getMove().getEndPosition()));
     }
 
     private void handleLeave(Session session, UserGameCommand command) throws DataAccessException {

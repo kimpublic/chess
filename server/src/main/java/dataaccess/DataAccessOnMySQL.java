@@ -230,6 +230,7 @@ public class DataAccessOnMySQL implements DataAccess {
                 game.state_json,
                 white.username AS whiteUsername,
                 black.username AS blackUsername,
+                game.is_over
             FROM games game
             LEFT JOIN users white ON game.white_id = white.id
             LEFT JOIN users black ON game.black_id = black.id
@@ -252,6 +253,7 @@ public class DataAccessOnMySQL implements DataAccess {
             }
             return games;
         } catch (SQLException e) {
+            e.printStackTrace();
             throw new DataAccessException("Failed to list games", e);
         }
     }

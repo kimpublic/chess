@@ -7,11 +7,14 @@ import chess.ChessPiece;
 import chess.ChessPiece.*;
 import chess.ChessPosition;
 import ui.EscapeSequences;
+import websocket.commands.UserGameCommand;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static ui.EscapeSequences.*;
 
@@ -25,6 +28,10 @@ public class Console {
     private boolean observeMode = false;
     private String cmd = "";
     private List<Map<String,Object>> listOfGames = null;
+
+    private String perspective;
+
+    private CountDownLatch joinLatch;
 
     private Map<Integer,Integer> indexToGameID = new HashMap<>();
 
@@ -98,10 +105,10 @@ public class Console {
         }
     }
 
-    public void drawBoard(String color) {
+    public void drawBoard(ChessGame game, String color) {
+        System.out.println(">> Chessboard loaded");
+        this.perspective = color;
         boolean ifWhite = "WHITE".equals(color);
-        ChessGame game = new ChessGame();
-
         ChessBoard board = game.getBoard();
 
         for (int col = 0; col < 10; col++) {
@@ -144,16 +151,24 @@ public class Console {
 
     }
 
+    public void drawBoard(String color) {
+        drawBoard(new ChessGame(), color);
+    }
+
+    public String getPerspective() {
+        return perspective;
+    }
+
     private void handleRegister(String[] parsed) {
         try {
             if (parsed.length != 2) {
-                System.out.println("Usage: \"register\" <USERNAME> <PASSWORD> <EMAIL>");
+                System.out.println(">> Usage: \"register\" <USERNAME> <PASSWORD> <EMAIL>");
                 return;
             }
             String arguments = parsed[1];
             String[] argumentsParsed = arguments.split(" ");
             if (argumentsParsed.length != 3) {
-                System.out.println("Usage: \"register\" <USERNAME> <PASSWORD> <EMAIL>");
+                System.out.println(">> Usage: \"register\" <USERNAME> <PASSWORD> <EMAIL>");
                 return;
             }
             facade.register(argumentsParsed[0], argumentsParsed[1], argumentsParsed[2]);
@@ -167,13 +182,13 @@ public class Console {
     private void handleLogin(String[] parsed) {
         try {
             if (parsed.length != 2) {
-                System.out.println("Usage: \"login\" <USERNAME> <PASSWORD>");
+                System.out.println(">> Usage: \"login\" <USERNAME> <PASSWORD>");
                 return;
             }
             String arguments = parsed[1];
             String[] argumentsParsed = arguments.split(" ");
             if (argumentsParsed.length != 2) {
-                System.out.println("Usage: \"login\" <USERNAME> <PASSWORD>");
+                System.out.println(">> Usage: \"login\" <USERNAME> <PASSWORD>");
                 return;
             }
             facade.login(argumentsParsed[0], argumentsParsed[1]);
@@ -252,7 +267,7 @@ public class Console {
         }
 
         if (parsed.length != 2) {
-            System.out.println("Usage: \"observe\" <GAME INDEX>");
+            System.out.println(">> Usage: \"observe\" <GAME INDEX>");
             return;
         }
 
@@ -282,7 +297,7 @@ public class Console {
 
         try {
             if (parsed.length != 2) {
-                System.out.println("Usage: \"create\" <GAME NAME>");
+                System.out.println(">> Usage: \"create\" <GAME NAME>");
                 return;
             }
             String gameName = parsed[1];
@@ -302,7 +317,7 @@ public class Console {
         String arguments = parsed[1];
         String[] argumentsParsed = arguments.split(" ");
         if (argumentsParsed.length != 2) {
-            System.out.println("Usage: \"join\" <GAME INDEX> <COLOR TO PLAY: \"black\" or \"white\">");
+            System.out.println(">> Usage: \"join\" <GAME INDEX> <COLOR TO PLAY: \"black\" or \"white\">");
             return;
         }
 
@@ -326,13 +341,33 @@ public class Console {
         }
         try {
             int gameID = indexToGameID.get(gameIndex);
+            facade.connectWebSocket(this);
+
+            joinLatch = new CountDownLatch(1);
+
             facade.joinGame(gameID, chosenColor);
+
             System.out.printf(">> You joined the game with index [ %d ]. Game loading ... %n", gameIndex);
+            facade.sendGameCommand(new UserGameCommand(
+                    UserGameCommand.CommandType.CONNECT,
+                    facade.getAuthToken(),
+                    gameID
+            ));
+
+            if (!joinLatch.await(5, TimeUnit.SECONDS)) {
+                System.out.println(">> Waiting for server to draw the chess board…");
+            }
+
             gameMode = true;
-            // drawBoard
-            drawBoard(chosenColor);
         } catch (Exception e) {
             System.out.println(e.getMessage());
+        }
+    }
+
+    public void onLoadGame(ChessGame game) {
+        drawBoard(game, perspective);
+        if (joinLatch != null) {
+            joinLatch.countDown();
         }
     }
 

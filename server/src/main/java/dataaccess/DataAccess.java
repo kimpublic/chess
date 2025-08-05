@@ -24,4 +24,5 @@ public interface DataAccess {
     void updateGame(GameData game) throws DataAccessException;
 
     String lookupUsernameWithAuth(String authToken) throws DataAccessException;
+
 }
