@@ -44,7 +44,7 @@ public class WebSocketHandler2 {
                 break;
             case ERROR:
                 ErrorMessage error = gson.fromJson(msg, ErrorMessage.class);
-                System.out.println("\n>>> Error: " + error.getErrorMessage());
+                System.out.println("\n>>> " + error.getErrorMessage());
                 System.out.print(">>> ");
                 break;
             case NOTIFICATION:

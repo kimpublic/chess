@@ -13,6 +13,7 @@ import org.eclipse.jetty.websocket.api.annotations.*;
 import service.GameService;
 import service.UserService;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 
@@ -92,10 +93,14 @@ public class WebSocketServer {
     }
 
     private void handleMove(Session session, UserGameCommand command) throws DataAccessException {
-        gameService.makeMove(command.getGameID(), command.getMove());
-        ChessGame updatedGame = gameService.getGame(command.getGameID()).game();
-        broadcastToAll(currentGameID, new LoadGameMessage(updatedGame));
-        broadcastToOthers(session, currentGameID, new NotificationMessage(command.getMove().getStartPosition() + "moved to " + command.getMove().getEndPosition()));
+        try {
+            gameService.makeMove(command.getGameID(), command.getMove());
+            ChessGame updatedGame = gameService.getGame(command.getGameID()).game();
+            broadcastToAll(currentGameID, new LoadGameMessage(updatedGame));
+            broadcastToOthers(session, currentGameID, new NotificationMessage(command.getMove().getStartPosition() + "moved to " + command.getMove().getEndPosition()));
+        } catch (IllegalStateException e) {
+            send(session, new ErrorMessage("Error: " + e.getMessage()));
+        }
     }
 
     private void handleLeave(Session session, UserGameCommand command) throws DataAccessException {

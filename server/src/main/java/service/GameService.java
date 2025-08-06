@@ -110,6 +110,9 @@ public class GameService {
             if (searchedGame.isOver()) {
                 throw new DataAccessException("Game is already over.");
             }
+            if (searchedGame.whiteUsername() == null || searchedGame.blackUsername() == null) {
+                throw new IllegalStateException("More player(s) needed to make a move");
+            }
             ChessGame game = searchedGame.game();
 
 
