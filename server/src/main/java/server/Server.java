@@ -17,6 +17,8 @@ public class Server {
     public int run(int portNumber) {
         port(portNumber);
 
+        webSocketIdleTimeoutMillis(600_000);
+
         DataAccess dataAccessObject;
 
         try {

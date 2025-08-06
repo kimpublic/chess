@@ -54,6 +54,8 @@ public class Console {
         this.facade = facade;
     }
 
+    
+
     public void help() {
         if (!loggedIn) {
             System.out.println("Options:");
@@ -419,6 +421,21 @@ public class Console {
         }
     }
 
+    public void handleResign() {
+        if (!gameMode || currentGameID == null) {
+            System.out.println(">> You are not in a game room.");
+            return;
+        }
+
+        facade.sendGameCommand(new UserGameCommand(UserGameCommand.CommandType.RESIGN, facade.getAuthToken(), currentGameID));
+
+        gameMode = false;
+        currentGameID = null;
+        currentGame = null;
+        perspective = null;
+        System.out.println(">> You resigned the game.\n>> Now you are in the main room. Type \"help\" for options.");
+    }
+
     public void onLoadGame(ChessGame game) {
         this.currentGame = game;
         drawBoard(game, perspective);
@@ -499,7 +516,8 @@ public class Console {
                 }
 
                 case "resign": {
-
+                    handleResign();
+                    break;
                 }
 
                 case "highlight": {

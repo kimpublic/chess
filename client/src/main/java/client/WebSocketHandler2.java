@@ -28,7 +28,7 @@ public class WebSocketHandler2 {
 
     @OnOpen
     public void onOpen(Session session) {
-        System.out.println("WebSocket connected");
+        System.out.println(">>> WebSocket connected");
         this.session = session;
     }
 
@@ -44,26 +44,27 @@ public class WebSocketHandler2 {
                 break;
             case ERROR:
                 ErrorMessage error = gson.fromJson(msg, ErrorMessage.class);
-                System.out.println("Error: " + error.getErrorMessage());
+                System.out.println("\n>>> Error: " + error.getErrorMessage());
+                System.out.print(">>> ");
                 break;
             case NOTIFICATION:
                 NotificationMessage notification = gson.fromJson(msg, NotificationMessage.class);
-                System.out.println("Notification: " + notification.getMessage());
+                System.out.println("\n>>> Notification: " + notification.getMessage());
+                System.out.print(">>> ");
                 break;
         }
     }
 
     @OnClose
     public void onClose(Session session, CloseReason reason) {
-        System.out.println("WebSocket closed: " + reason);
-
-        console.handleLeave();
+        System.out.println(">>> WebSocket closed: " + reason);
+        System.out.print(">>> ");
 
     }
 
     @OnError
     public void onError(Session session, Throwable e) {
-        System.out.println("WebSocket error: " + e.getMessage());
+        System.out.println(">>> WebSocket error: " + e.getMessage());
         logger.log(Level.SEVERE, "WebSocket error", e);
     }
 
@@ -75,7 +76,7 @@ public class WebSocketHandler2 {
         try {
             session.getAsyncRemote().sendText(gson.toJson(object));
         } catch (Exception e) {
-            System.out.println("WebSocket error: " + e.getMessage());
+            System.out.println(">>> WebSocket error: " + e.getMessage());
             logger.log(Level.SEVERE, "WebSocket error", e);
         }
     }

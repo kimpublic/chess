@@ -31,6 +31,9 @@ public class WebSocketServer {
 
     private static final Map<Integer, Set<Session>> gameSessions = new ConcurrentHashMap<>();
 
+    private static final Map<Session, Integer> sessionGameMap = new ConcurrentHashMap<>();
+    private static final Map<Session, String> sessionTokenMap= new ConcurrentHashMap<>();
+
     private final GameService gameService;
     private final UserService userService;
     private Session session;
@@ -69,6 +72,9 @@ public class WebSocketServer {
     }
 
     private void handleConnect(Session session, UserGameCommand command) throws DataAccessException {
+        sessionGameMap.put(session, command.getGameID());
+        sessionTokenMap.put(session, command.getAuthToken());
+
         GameData gameData = gameService.getGame(command.getGameID());
         ChessGame game = gameData.game();
         send(session, new LoadGameMessage(game));
@@ -129,7 +135,20 @@ public class WebSocketServer {
 
     @OnWebSocketClose
     public void connectionClosed(Session session, int statusCode, String reason) {
-        gameSessions.getOrDefault(currentGameID, Set.of()).remove(session);
+        Integer gameID = sessionGameMap.remove(session);
+        String  token  = sessionTokenMap.remove(session);
+
+        if (gameID != null && token != null) {
+            try {
+                gameService.leave(token, gameID);
+                String username = userService.getUsername(token);
+                broadcastToOthers(session, gameID,
+                        new NotificationMessage(username + " has left the game."));
+            } catch (DataAccessException e) {
+                logger.log(Level.WARNING, "auto-LEAVE failed on close", e);
+            }
+            gameSessions.getOrDefault(gameID, Set.of()).remove(session);
+        }
         System.out.printf("WebSocket closed: [%d] %s%n", statusCode, reason);
     }
 
