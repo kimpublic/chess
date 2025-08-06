@@ -28,6 +28,8 @@ public class Console {
     private boolean observeMode = false;
     private String cmd = "";
     private List<Map<String,Object>> listOfGames = null;
+    private Integer currentGameID;
+    private ChessGame currentGame;
 
     private String perspective;
 
@@ -282,10 +284,38 @@ public class Console {
             System.out.println(">> Game index is not valid.");
             return;
         }
-        System.out.printf(">> You joined the game with index [ %d ] as an observer. Game loading ... %n", gameIndex);
-        // drawBoard
-        drawBoard("WHITE");
-        observeMode = true;
+
+
+
+        try {
+
+            facade.connectWebSocket(this);
+            this.perspective = "WHITE";
+
+            int gameID = indexToGameID.get(gameIndex);
+
+            facade.sendGameCommand(new UserGameCommand(
+                    UserGameCommand.CommandType.CONNECT,
+                    facade.getAuthToken(),
+                    currentGameID
+            ));
+
+            this.currentGameID = gameID;
+
+            observeMode = true;
+
+            System.out.printf(">> You are now observing the game with index [ %d ]. Game loading ... %n", gameIndex);
+
+            joinLatch = new CountDownLatch(1);
+
+            if (!joinLatch.await(5, TimeUnit.SECONDS)) {
+                System.out.println(">> Waiting for server to draw the chess board…");
+            }
+
+        } catch (Exception e) {
+            this.currentGameID = null;
+            System.out.println(">> Observing failed: " + e.getMessage());
+        }
     }
 
     private void handleCreate(String[] parsed) {
@@ -304,7 +334,7 @@ public class Console {
             facade.createGame(gameName);
             System.out.println(">> Game created.");
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("Creating game failed: " + e.getMessage());
         }
     }
 
@@ -341,30 +371,56 @@ public class Console {
         }
         try {
             int gameID = indexToGameID.get(gameIndex);
-            facade.connectWebSocket(this);
-
-            joinLatch = new CountDownLatch(1);
 
             facade.joinGame(gameID, chosenColor);
 
+            this.currentGameID = gameID;
+
             System.out.printf(">> You joined the game with index [ %d ]. Game loading ... %n", gameIndex);
+
+            facade.connectWebSocket(this);
+
             facade.sendGameCommand(new UserGameCommand(
                     UserGameCommand.CommandType.CONNECT,
                     facade.getAuthToken(),
                     gameID
             ));
 
+            joinLatch = new CountDownLatch(1);
             if (!joinLatch.await(5, TimeUnit.SECONDS)) {
                 System.out.println(">> Waiting for server to draw the chess board…");
             }
 
             gameMode = true;
         } catch (Exception e) {
+            this.currentGameID = null;
+            System.out.println("Joining game failed: " + e.getMessage());
+        }
+    }
+
+    public void handleLeave() {
+        try {
+            if (gameMode || observeMode || currentGameID != null) {
+                facade.sendGameCommand(new UserGameCommand(
+                        UserGameCommand.CommandType.LEAVE,
+                        facade.getAuthToken(),
+                        currentGameID
+                ));
+                if (gameMode) {gameMode = false;}
+                if (observeMode) {observeMode = false;}
+                currentGameID = null;
+                System.out.println(">> You left the game.");
+
+            } else {
+                System.out.println("You are not in a game room.");
+            }
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
 
     public void onLoadGame(ChessGame game) {
+        this.currentGame = game;
         drawBoard(game, perspective);
         if (joinLatch != null) {
             joinLatch.countDown();
@@ -399,6 +455,8 @@ public class Console {
                     handleLogin(parsed);
                     break;
                 }
+
+                // post-login
                 case "logout": {
                     handleLogout();
                     break;
@@ -419,30 +477,36 @@ public class Console {
                     handleObserve(parsed);
                     break;
                 }
-                case "draw": {
-                    drawBoard("WHITE");
-                    System.out.println();
-                    drawBoard("BLACK");
+
+                // gameMode & observeMode
+
+                case "leave": {
+                    handleLeave();
                     break;
                 }
 
-                // these are for develop
-                case "leave": {
-                    if (gameMode || observeMode) {
-                        if (gameMode) {
-                            gameMode = false;
-                        }
-                        if (observeMode) {
-                            observeMode = false;
-                        }
-                        System.out.println(">> You left the game.");
-                        break;
+                case "redraw": {
+                    if (currentGame != null) {
+                        drawBoard(currentGame, perspective);
+                    } else {
+                        System.out.println(">> No game found to redraw.");
                     }
-                    else {
-                        System.out.println("You are not in the game room.");
-                        break;
-                    }
+                    break;
                 }
+
+                case "move": {
+
+                }
+
+                case "resign": {
+
+                }
+
+                case "highlight": {
+
+                }
+
+
                 case "clear": {
                     try {
                         facade.clearDatabase();
@@ -451,6 +515,12 @@ public class Console {
                         System.out.println(e.getMessage());
                         break;
                     }
+                }
+                case "draw": {
+                    drawBoard("WHITE");
+                    System.out.println();
+                    drawBoard("BLACK");
+                    break;
                 }
                 // need to delete these two later
 

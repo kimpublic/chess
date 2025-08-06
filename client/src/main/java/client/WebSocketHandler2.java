@@ -55,7 +55,10 @@ public class WebSocketHandler2 {
 
     @OnClose
     public void onClose(Session session, CloseReason reason) {
-        System.out.printf("WebSocket closed: [%d] %s%n", reason);
+        System.out.println("WebSocket closed: " + reason);
+
+        console.handleLeave();
+
     }
 
     @OnError

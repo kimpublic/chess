@@ -7,6 +7,7 @@ package server;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
+import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.*;
 import service.GameService;
@@ -68,9 +69,20 @@ public class WebSocketServer {
     }
 
     private void handleConnect(Session session, UserGameCommand command) throws DataAccessException {
-        ChessGame game = gameService.getGame(command.getGameID()).game();
+        GameData gameData = gameService.getGame(command.getGameID());
+        ChessGame game = gameData.game();
         send(session, new LoadGameMessage(game));
-        broadcastToOthers(session, currentGameID, new NotificationMessage(userService.getUsername(command.getAuthToken()) + " has joined the game."));
+        String username = userService.getUsername(command.getAuthToken());
+        String role;
+        if (username.equals(gameData.whiteUsername())) {
+            role = "a white player";   // 흰색 플레이어
+        } else if (username.equals(gameData.blackUsername())) {
+            role = "a black player";   // 검은색 플레이어
+        } else {
+            role = "an observer"; // 관전자
+        }
+        String msg = String.format("%s has joined as %s.", username, role);
+        broadcastToOthers(session, currentGameID, new NotificationMessage(msg));
     }
 
     private void handleMove(Session session, UserGameCommand command) throws DataAccessException {

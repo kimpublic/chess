@@ -250,6 +250,7 @@ public class ServerFacade {
         // http://localhost:포트 → ws://localhost:포트/ws
         String wsUrl = baseUrl.replaceFirst("^http", "ws") + "/ws";
         session = wsContainer.connectToServer(wsHandler, new URI(wsUrl));
+        session.setMaxIdleTimeout(600_000);
         System.out.println("WebSocket connected: " + wsUrl);
     }
 
