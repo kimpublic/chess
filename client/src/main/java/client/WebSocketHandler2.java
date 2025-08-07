@@ -59,6 +59,7 @@ public class WebSocketHandler2 {
         }
     }
 
+    @SuppressWarnings("unused")
     @OnClose
     public void onClose(Session session, CloseReason reason) {
         System.out.println(">>> WebSocket closed: " + reason);
@@ -67,6 +68,7 @@ public class WebSocketHandler2 {
 
     }
 
+    @SuppressWarnings("unused")
     @OnError
     public void onError(Session session, Throwable e) {
         System.out.println(">>> WebSocket error: " + e.getMessage());
