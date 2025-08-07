@@ -42,10 +42,9 @@ public class WebSocketHandler2 {
             case LOAD_GAME:
                 LoadGameMessage loadGame = gson.fromJson(msg, LoadGameMessage.class);
                 ChessGame game = loadGame.getGame();
-                console.onLoadGame(loadGame.getGame());
-                if (!game.isInCheckmate(console.currentTurnTeam) && !game.isInStalemate(console.currentTurnTeam) && console.currentTurnTeam == console.myColor) {
-                    System.out.println(">>> Your turn. Make a move.");
-                }
+                console.currentGame = loadGame.getGame();
+                console.currentTurnTeam = game.getTeamTurn();
+                console.onLoadGame(loadGame.getGame(), loadGame.getMoveMade());
                 break;
             case ERROR:
                 ErrorMessage error = gson.fromJson(msg, ErrorMessage.class);

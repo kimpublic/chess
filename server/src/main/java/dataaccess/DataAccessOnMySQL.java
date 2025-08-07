@@ -277,8 +277,7 @@ public class DataAccessOnMySQL implements DataAccess {
             System.out.println("[UPDATE] affected rows = " + updatedNumbers);
             if (updatedNumbers == 0) {throw new DataAccessException("game does not exist");}
         } catch (SQLException e) {
-            throw new DataAccessException("Failed to update game", e);
-        }
+            throw new DataAccessException("Failed to update game", e);}
     }
 
     private Integer lookupUserId(Connection connection, String username) throws DataAccessException {

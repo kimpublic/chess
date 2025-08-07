@@ -80,7 +80,7 @@ public class WebSocketServer {
 
         GameData gameData = gameService.getGame(command.getGameID());
         ChessGame game = gameData.game();
-        send(session, new LoadGameMessage(game));
+        send(session, new LoadGameMessage(game, null));
         String username = userService.getUsername(command.getAuthToken());
         String role;
         if (username.equals(gameData.whiteUsername())) {
@@ -101,8 +101,13 @@ public class WebSocketServer {
         try {
             gameService.makeMove(gameID, move);
             ChessGame updatedGame = gameService.getGame(gameID).game();
-            broadcastToAll(currentGameID, new LoadGameMessage(updatedGame));
-            broadcastToOthers(session, currentGameID, new NotificationMessage(command.getMove().getStartPosition() + "moved to " + command.getMove().getEndPosition()));
+            broadcastToAll(currentGameID, new LoadGameMessage(updatedGame, move));
+
+            String username = userService.getUsername(command.getAuthToken());
+            String moveDescription = describeMove(command.getMove());
+            String message = String.format("%s moved %s.", username, moveDescription);
+
+            broadcastToOthers(session, currentGameID, new NotificationMessage(message));
 
             ChessGame.TeamColor nextTurn = updatedGame.getTeamTurn();
 
@@ -157,6 +162,14 @@ public class WebSocketServer {
                 send(session, message);
             }
         }
+    }
+
+    private String describeMove(ChessMove move) {
+        char startCol = (char) ('A' + move.getStartPosition().getColumn() - 1);
+        int startRow = move.getStartPosition().getRow();
+        char endCol = (char) ('A' + move.getEndPosition().getColumn() - 1);
+        int endRow = move.getEndPosition().getRow();
+        return String.format("%c%d to %c%d", startCol, startRow, endCol, endRow);
     }
 
     @OnWebSocketClose
