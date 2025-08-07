@@ -345,8 +345,12 @@ public class Console {
     }
 
     public void handleMove(String[] parsed) {
-        if (!gameMode || currentGameID == null) {
+        if (!gameMode && !observeMode && currentGameID == null) {
             System.out.println(">>> You are not in a game room.");
+            return;
+        }
+        if (observeMode) {
+            System.out.println(">>> Only players can make moves.");
             return;
         }
         if (currentTurnTeam != myColor) {

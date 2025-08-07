@@ -74,14 +74,32 @@ public class WebSocketServer {
         }
     }
 
+    private String validateAuthToken(Session session, String authToken) {
+        try {
+            return userService.getUsername(authToken);
+        } catch (DataAccessException e) {
+            send(session, new ErrorMessage("Error: invalid auth token"));
+            return null;
+        }
+    }
+
     private void handleConnect(Session session, UserGameCommand command) throws DataAccessException {
+        GameData gameData;
+        try {
+            gameData = gameService.getGame(command.getGameID());
+        } catch (DataAccessException e) {
+            send(session, new ErrorMessage("Error: invalid gameID"));
+            return;
+        }
+
+        String username = validateAuthToken(session, command.getAuthToken());
+        if (username == null) return;
+
         SESSION_GAME_MAP.put(session, command.getGameID());
         SESSION_TOKEN_MAP.put(session, command.getAuthToken());
 
-        GameData gameData = gameService.getGame(command.getGameID());
         ChessGame game = gameData.game();
         send(session, new LoadGameMessage(game, null));
-        String username = userService.getUsername(command.getAuthToken());
         String role;
         if (username.equals(gameData.whiteUsername())) {
             role = "a white player";   // 흰색 플레이어
@@ -95,6 +113,35 @@ public class WebSocketServer {
     }
 
     private void handleMove(Session session, UserGameCommand command) throws DataAccessException {
+        if (!SESSION_GAME_MAP.containsKey(session)
+                || !SESSION_GAME_MAP.get(session).equals(command.getGameID())) {
+            send(session, new ErrorMessage("Error: not connected to this game"));
+            return;
+        }
+
+        String username = validateAuthToken(session, command.getAuthToken());
+        if (username == null) return;
+
+        GameData gameData = gameService.getGame(command.getGameID());
+        if (!username.equals(gameData.whiteUsername())
+                && !username.equals(gameData.blackUsername())) {
+            send(session, new ErrorMessage("Error: Only players can make moves."));
+            return;
+        }
+
+        if (gameData.isOver()) {
+            send(session, new ErrorMessage("Error: Game is already over."));
+            return;
+        }
+
+        ChessGame.TeamColor team = gameData.game().getTeamTurn();
+        boolean isWhiteTurn = team == ChessGame.TeamColor.WHITE;
+        boolean isWhitePlayer = username.equals(gameData.whiteUsername());
+        if ((isWhiteTurn && !isWhitePlayer) || (!isWhiteTurn && isWhitePlayer)) {
+            send(session, new ErrorMessage("Error: Not your turn"));
+            return;
+        }
+
         int gameID = command.getGameID();
         ChessMove move = command.getMove();
 
@@ -103,7 +150,6 @@ public class WebSocketServer {
             ChessGame updatedGame = gameService.getGame(gameID).game();
             broadcastToAll(currentGameID, new LoadGameMessage(updatedGame, move));
 
-            String username = userService.getUsername(command.getAuthToken());
             String moveDescription = describeMove(command.getMove());
             String message = String.format("%s moved %s.", username, moveDescription);
 
@@ -130,6 +176,9 @@ public class WebSocketServer {
     }
 
     private void handleLeave(Session session, UserGameCommand command) throws DataAccessException {
+        String username = validateAuthToken(session, command.getAuthToken());
+        if (username == null) return;
+
         int gameID = command.getGameID();
         gameService.leave(command.getAuthToken(), gameID);
         GAME_SESSIONS.getOrDefault(gameID, Set.of()).remove(session);
@@ -137,10 +186,23 @@ public class WebSocketServer {
     }
 
     private void handleResign(Session session, UserGameCommand command) throws DataAccessException {
+        String username = validateAuthToken(session, command.getAuthToken());
+        if (username == null) return;
+
+        GameData gameData = gameService.getGame(command.getGameID());
+        if (!username.equals(gameData.whiteUsername())
+                && !username.equals(gameData.blackUsername())) {
+            send(session, new ErrorMessage("Error: Only players can resign."));
+            return;
+        }
+
+        if (gameData.isOver()) {
+            send(session, new ErrorMessage("Error: Game is already over."));
+            return;
+        }
+
         gameService.resign(command.getAuthToken(), command.getGameID());
-        String username = userService.getUsername(command.getAuthToken());
         broadcastToAll(currentGameID, new NotificationMessage(">>> " + username + " has resigned. Game ended."));
-        broadcastToAll(currentGameID, new NotificationMessage(">>> You can leave this room by typing \"leave\"."));
     }
 
     private void send(Session session, Object message) {
