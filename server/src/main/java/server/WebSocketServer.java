@@ -75,21 +75,30 @@ public class WebSocketServer {
     }
 
     private String validateAuthToken(Session session, String authToken) {
+        String username = null;
         try {
-            return userService.getUsername(authToken);
+            username = userService.getUsername(authToken);
         } catch (DataAccessException e) {
-            send(session, new ErrorMessage("Error: invalid auth token"));
+            send(session, new ErrorMessage("Error: Invalid AuthToken."));
             return null;
         }
+        if (username == null) {
+            send(session, new ErrorMessage("Error: Invalid AuthToken."));
+            return null;
+        }
+        return username;
     }
 
     private void handleConnect(Session session, UserGameCommand command) throws DataAccessException {
-        GameData gameData;
+        GameData gameData = null;
         try {
             gameData = gameService.getGame(command.getGameID());
         } catch (DataAccessException e) {
-            send(session, new ErrorMessage("Error: invalid gameID"));
+            send(session, new ErrorMessage("Error: Invalid GameID."));
             return;
+        }
+        if (gameData == null) {
+            send(session, new ErrorMessage("Error: Invalid GameID."));
         }
 
         String username = validateAuthToken(session, command.getAuthToken());
@@ -166,7 +175,7 @@ public class WebSocketServer {
             }
 
         } catch (InvalidMoveException e) {
-            send(session, new ErrorMessage("Error: Invalid move"));
+            send(session, new ErrorMessage("Error: Invalid move."));
         } catch (IllegalStateException e) {
             send(session, new ErrorMessage("Error: " + e.getMessage()));
         } catch (DataAccessException e) {
