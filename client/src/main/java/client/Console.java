@@ -337,8 +337,12 @@ public class Console {
     }
 
     public void handleResign() {
-        if (!gameMode || currentGameID == null) {
+        if (!gameMode && !observeMode && currentGameID == null) {
             System.out.println(">>> You are not in a game room.");
+            return;
+        }
+        if (observeMode) {
+            System.out.println(">>> Only players can resign.");
             return;
         }
         facade.sendGameCommand(new UserGameCommand(UserGameCommand.CommandType.RESIGN, facade.getAuthToken(), currentGameID));
