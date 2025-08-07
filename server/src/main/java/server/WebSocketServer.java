@@ -102,7 +102,7 @@ public class WebSocketServer {
         }
 
         String username = validateAuthToken(session, command.getAuthToken());
-        if (username == null) return;
+        if (username == null) {return;}
 
         SESSION_GAME_MAP.put(session, command.getGameID());
         SESSION_TOKEN_MAP.put(session, command.getAuthToken());
@@ -129,7 +129,7 @@ public class WebSocketServer {
         }
 
         String username = validateAuthToken(session, command.getAuthToken());
-        if (username == null) return;
+        if (username == null) {return;}
 
         GameData gameData = gameService.getGame(command.getGameID());
         if (!username.equals(gameData.whiteUsername())
@@ -186,7 +186,7 @@ public class WebSocketServer {
 
     private void handleLeave(Session session, UserGameCommand command) throws DataAccessException {
         String username = validateAuthToken(session, command.getAuthToken());
-        if (username == null) return;
+        if (username == null) {return;}
 
         int gameID = command.getGameID();
         gameService.leave(command.getAuthToken(), gameID);
@@ -196,7 +196,7 @@ public class WebSocketServer {
 
     private void handleResign(Session session, UserGameCommand command) throws DataAccessException {
         String username = validateAuthToken(session, command.getAuthToken());
-        if (username == null) return;
+        if (username == null) {return;}
 
         GameData gameData = gameService.getGame(command.getGameID());
         if (!username.equals(gameData.whiteUsername())
