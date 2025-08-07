@@ -281,7 +281,7 @@ public class DataAccessOnMySQL implements DataAccess {
     }
 
     private Integer lookupUserId(Connection connection, String username) throws DataAccessException {
-        if (username == null) return null;
+        if (username == null) {return null;}
         String statementFormat = "SELECT id FROM users WHERE username = ?";
         try (var statement = connection.prepareStatement(statementFormat)) {
             statement.setString(1, username);

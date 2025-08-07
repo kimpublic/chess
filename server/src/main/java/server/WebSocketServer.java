@@ -138,7 +138,9 @@ public class WebSocketServer {
 
     private void handleResign(Session session, UserGameCommand command) throws DataAccessException {
         gameService.resign(command.getAuthToken(), command.getGameID());
-        broadcastToAll(currentGameID, new NotificationMessage(">>> " + userService.getUsername(command.getAuthToken()) + " has resigned. Game ended.\n>>> You can leave this room by typing \"leave\"."));
+        String username = userService.getUsername(command.getAuthToken());
+        broadcastToAll(currentGameID, new NotificationMessage(">>> " + username + " has resigned. Game ended."));
+        broadcastToAll(currentGameID, new NotificationMessage(">>> You can leave this room by typing \"leave\"."));
     }
 
     private void send(Session session, Object message) {

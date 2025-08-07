@@ -27,9 +27,13 @@ public class BoardRender {
         }
     }
 
-    public static void drawBoard(ChessGame game, String perspective, ChessPosition selected, Collection<ChessPosition> validPositions, ChessMove moveMade) {
+    public static void drawBoard(ChessGame game,
+                                 String color,
+                                 ChessPosition selected,
+                                 Collection<ChessPosition> positions,
+                                 ChessMove move) {
         System.out.println(">>> Chessboard loaded");
-        boolean ifWhite = "WHITE".equals(perspective);
+        boolean ifWhite = "WHITE".equals(color);
         ChessBoard board = game.getBoard();
 
         String[] alphabet = {
@@ -62,17 +66,17 @@ public class BoardRender {
 
                 String squareBgColor = bgColor;
 
-                if (moveMade != null) {
-                    if (position.equals(moveMade.getStartPosition())) {
+                if (move != null) {
+                    if (position.equals(move.getStartPosition())) {
                         squareBgColor = SET_BG_COLOR_YELLOW; // 출발 지점: 노란색
-                    } else if (position.equals(moveMade.getEndPosition())) {
+                    } else if (position.equals(move.getEndPosition())) {
                         squareBgColor = SET_BG_COLOR_GREEN; // 도착 지점: 연두색
                     }
                 }
 
                 if (position.equals(selected)) {
                     squareBgColor = SET_BG_COLOR_YELLOW;
-                } else if (validPositions != null && validPositions.contains(position)) {
+                } else if (positions != null && positions.contains(position)) {
                     squareBgColor = SET_BG_COLOR_GREEN;
                 }
 
