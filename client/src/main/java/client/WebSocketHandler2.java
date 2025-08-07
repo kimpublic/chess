@@ -25,7 +25,7 @@ public class WebSocketHandler2 {
         this.console = console;
     }
 
-    private static final Logger logger = Logger.getLogger(WebSocketHandler2.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(WebSocketHandler2.class.getName());
 
     @OnOpen
     public void onOpen(Session session) {
@@ -70,7 +70,7 @@ public class WebSocketHandler2 {
     @OnError
     public void onError(Session session, Throwable e) {
         System.out.println(">>> WebSocket error: " + e.getMessage());
-        logger.log(Level.SEVERE, "WebSocket error", e);
+        LOGGER.log(Level.SEVERE, "WebSocket error", e);
     }
 
     public boolean isOpen() {
@@ -82,7 +82,7 @@ public class WebSocketHandler2 {
             session.getAsyncRemote().sendText(gson.toJson(object));
         } catch (Exception e) {
             System.out.println(">>> WebSocket error: " + e.getMessage());
-            logger.log(Level.SEVERE, "WebSocket error", e);
+            LOGGER.log(Level.SEVERE, "WebSocket error", e);
         }
     }
 

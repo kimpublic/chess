@@ -28,14 +28,14 @@ import java.util.logging.Logger;
 @WebSocket
 public class WebSocketServer {
 
-    private static final Logger logger = Logger.getLogger(WebSocketServer.class.getName());
-    private static final Gson gson = new Gson();
+    private static final Logger LOGGER = Logger.getLogger(WebSocketServer.class.getName());
+    private static final Gson GSON = new Gson();
 
 
-    private static final Map<Integer, Set<Session>> gameSessions = new ConcurrentHashMap<>();
+    private static final Map<Integer, Set<Session>> GAME_SESSIONS = new ConcurrentHashMap<>();
 
-    private static final Map<Session, Integer> sessionGameMap = new ConcurrentHashMap<>();
-    private static final Map<Session, String> sessionTokenMap= new ConcurrentHashMap<>();
+    private static final Map<Session, Integer> SESSION_GAME_MAP = new ConcurrentHashMap<>();
+    private static final Map<Session, String> SESSION_TOKEN_MAP = new ConcurrentHashMap<>();
 
     private final GameService gameService;
     private final UserService userService;
@@ -56,11 +56,11 @@ public class WebSocketServer {
     @OnWebSocketMessage
     public void receiveMessage(Session session, String message) {
         try {
-            UserGameCommand command = gson.fromJson(message, UserGameCommand.class);
+            UserGameCommand command = GSON.fromJson(message, UserGameCommand.class);
             this.currentGameID = command.getGameID();
 
-            gameSessions.putIfAbsent(currentGameID, ConcurrentHashMap.newKeySet());
-            gameSessions.get(currentGameID).add(session);
+            GAME_SESSIONS.putIfAbsent(currentGameID, ConcurrentHashMap.newKeySet());
+            GAME_SESSIONS.get(currentGameID).add(session);
 
             switch (command.getCommandType()) {
                 case CONNECT -> handleConnect(session, command);
@@ -70,13 +70,13 @@ public class WebSocketServer {
             }
         } catch (Exception e) {
             System.out.println("WebSocket error: " + e.getMessage());
-            logger.log(Level.SEVERE, "WebSocket error", e);
+            LOGGER.log(Level.SEVERE, "WebSocket error", e);
         }
     }
 
     private void handleConnect(Session session, UserGameCommand command) throws DataAccessException {
-        sessionGameMap.put(session, command.getGameID());
-        sessionTokenMap.put(session, command.getAuthToken());
+        SESSION_GAME_MAP.put(session, command.getGameID());
+        SESSION_TOKEN_MAP.put(session, command.getAuthToken());
 
         GameData gameData = gameService.getGame(command.getGameID());
         ChessGame game = gameData.game();
@@ -125,14 +125,14 @@ public class WebSocketServer {
             send(session, new ErrorMessage("Error: " + e.getMessage()));
         } catch (DataAccessException e) {
             send(session, new ErrorMessage("Error: server failed updating game." + e.getMessage()));
-            logger.log(Level.SEVERE, "Failed to persist move", e);
+            LOGGER.log(Level.SEVERE, "Failed to persist move", e);
         }
     }
 
     private void handleLeave(Session session, UserGameCommand command) throws DataAccessException {
         int gameID = command.getGameID();
         gameService.leave(command.getAuthToken(), gameID);
-        gameSessions.getOrDefault(gameID, Set.of()).remove(session);
+        GAME_SESSIONS.getOrDefault(gameID, Set.of()).remove(session);
         broadcastToOthers(session, gameID, new NotificationMessage(">>> " + userService.getUsername(command.getAuthToken()) + " has left the game."));
     }
 
@@ -143,21 +143,21 @@ public class WebSocketServer {
 
     private void send(Session session, Object message) {
         try {
-            session.getRemote().sendString(gson.toJson(message));
+            session.getRemote().sendString(GSON.toJson(message));
         } catch (Exception e) {
             System.out.println("WebSocket error(Failed to send a message): " + e.getMessage());
-            logger.log(Level.SEVERE, "WebSocket error(Failed to send a message)", e);
+            LOGGER.log(Level.SEVERE, "WebSocket error(Failed to send a message)", e);
         }
     }
 
     private void broadcastToAll(int gameID, Object message) {
-        for (Session session : gameSessions.getOrDefault(gameID, Set.of())) {
+        for (Session session : GAME_SESSIONS.getOrDefault(gameID, Set.of())) {
             send(session, message);
         }
     }
 
     private void broadcastToOthers(Session sender, int gameID, Object message) {
-        for (Session session : gameSessions.getOrDefault(gameID, Set.of())) {
+        for (Session session : GAME_SESSIONS.getOrDefault(gameID, Set.of())) {
             if (!session.equals(sender)) {
                 send(session, message);
             }
@@ -174,8 +174,8 @@ public class WebSocketServer {
 
     @OnWebSocketClose
     public void onClose(Session session, int statusCode, String reason) {
-        Integer gameID = sessionGameMap.remove(session);
-        String  token  = sessionTokenMap.remove(session);
+        Integer gameID = SESSION_GAME_MAP.remove(session);
+        String  token  = SESSION_TOKEN_MAP.remove(session);
 
         if (gameID != null && token != null) {
             try {
@@ -184,9 +184,9 @@ public class WebSocketServer {
                 broadcastToOthers(session, gameID,
                         new NotificationMessage(username + " has left the game."));
             } catch (DataAccessException e) {
-                logger.log(Level.WARNING, "auto-LEAVE failed on close", e);
+                LOGGER.log(Level.WARNING, "auto-LEAVE failed on close", e);
             }
-            gameSessions.getOrDefault(gameID, Set.of()).remove(session);
+            GAME_SESSIONS.getOrDefault(gameID, Set.of()).remove(session);
         }
         System.out.printf("WebSocket closed: [%d] %s%n", statusCode, reason);
     }
@@ -194,7 +194,7 @@ public class WebSocketServer {
     @OnWebSocketError
     public void onError(Throwable e) {
         System.out.println("WebSocket error: " + e.getMessage());
-        logger.log(Level.SEVERE, "WebSocket error", e);
+        LOGGER.log(Level.SEVERE, "WebSocket error", e);
     }
 
 }
