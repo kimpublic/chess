@@ -1,5 +1,6 @@
 package client;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 
 import websocket.messages.ErrorMessage;
@@ -40,7 +41,11 @@ public class WebSocketHandler2 {
         switch (message.getServerMessageType()) {
             case LOAD_GAME:
                 LoadGameMessage loadGame = gson.fromJson(msg, LoadGameMessage.class);
+                ChessGame game = loadGame.getGame();
                 console.onLoadGame(loadGame.getGame());
+                if (!game.isInCheckmate(console.currentTurnTeam) && !game.isInStalemate(console.currentTurnTeam) && console.currentTurnTeam == console.myColor) {
+                    System.out.println(">>> Your turn. Make a move.");
+                }
                 break;
             case ERROR:
                 ErrorMessage error = gson.fromJson(msg, ErrorMessage.class);
@@ -58,6 +63,7 @@ public class WebSocketHandler2 {
     @OnClose
     public void onClose(Session session, CloseReason reason) {
         System.out.println(">>> WebSocket closed: " + reason);
+        console.handleLeave();
         System.out.print(">>> ");
 
     }

@@ -3,6 +3,7 @@ package service;
 import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessMove;
+import chess.InvalidMoveException;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.GameData;
@@ -10,6 +11,7 @@ import model.AuthData;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class GameService {
     private final DataAccess dataAccessObject;
@@ -104,42 +106,41 @@ public class GameService {
         return dataAccessObject.getGame(gameID);
     }
 
-    public void makeMove(int gameID, ChessMove move) throws DataAccessException {
+    public void makeMove(int gameID, ChessMove move) throws InvalidMoveException, DataAccessException {
+        GameData searchedGame = getGame(gameID);
+        if (searchedGame.isOver()) {
+            throw new DataAccessException("Game is already over.");
+        }
+        if (searchedGame.whiteUsername() == null || searchedGame.blackUsername() == null) {
+            throw new IllegalStateException("More player(s) needed to make a move");
+        }
+        ChessGame game = searchedGame.game();
+
+
+        ChessBoard board = game.getBoard();
+        if (game.getTeamTurn() != board.getPiece(move.getStartPosition()).getTeamColor()) {
+            throw new DataAccessException("Invalid request");
+        }
+        game.makeMove(move);
+
+        boolean isOverAfterMove = false;
+
+        ChessGame.TeamColor nextTurn = game.getTeamTurn();
+        if (game.isInCheckmate(nextTurn) || game.isInStalemate(nextTurn)) {
+            isOverAfterMove = true;
+        }
+
+        GameData updatedGameData = new GameData(
+                searchedGame.gameID(),
+                searchedGame.whiteUsername(),
+                searchedGame.blackUsername(),
+                searchedGame.gameName(),
+                game,
+                isOverAfterMove);
         try {
-            GameData searchedGame = getGame(gameID);
-            if (searchedGame.isOver()) {
-                throw new DataAccessException("Game is already over.");
-            }
-            if (searchedGame.whiteUsername() == null || searchedGame.blackUsername() == null) {
-                throw new IllegalStateException("More player(s) needed to make a move");
-            }
-            ChessGame game = searchedGame.game();
-
-
-            ChessBoard board = game.getBoard();
-            if (game.getTeamTurn() != board.getPiece(move.getStartPosition()).getTeamColor()) {
-                throw new DataAccessException("Invalid request");
-            }
-            game.makeMove(move);
-
-            boolean isOverAfterMove = false;
-
-            ChessGame.TeamColor nextTurn = game.getTeamTurn();
-            if (game.isInCheckmate(nextTurn) || game.isInStalemate(nextTurn)) {
-                isOverAfterMove = true;
-            }
-
-            GameData updatedGameData = new GameData(
-                    searchedGame.gameID(),
-                    searchedGame.whiteUsername(),
-                    searchedGame.blackUsername(),
-                    searchedGame.gameName(),
-                    game,
-                    isOverAfterMove);
             dataAccessObject.updateGame(updatedGameData);
-
         } catch (Exception e) {
-            throw new DataAccessException("Failed making a move");
+            throw new DataAccessException("Failed updating game, making a move");
         }
     }
 
@@ -176,13 +177,17 @@ public class GameService {
 
             String username = dataAccessObject.lookupUsernameWithAuth(authToken);
 
-            if (searchedGame.whiteUsername().equals(username) || searchedGame.blackUsername().equals(username)) {
-                String whiteUsername = searchedGame.whiteUsername().equals(username) ? null : (searchedGame.whiteUsername());
-                String blackUsername = searchedGame.blackUsername().equals(username) ? null : (searchedGame.blackUsername());
+            String white = searchedGame.whiteUsername();
+            String black = searchedGame.blackUsername();
+
+            if (Objects.equals(username, white) || Objects.equals(username, black)) {
+                String newWhite = Objects.equals(username, white) ? null : white;
+                String newBlack = Objects.equals(username, black) ? null : black;
+
                 GameData updatedGameData = new GameData(
                         searchedGame.gameID(),
-                        whiteUsername,
-                        blackUsername,
+                        newWhite,
+                        newBlack,
                         searchedGame.gameName(),
                         searchedGame.game(),
                         searchedGame.isOver());
@@ -190,7 +195,8 @@ public class GameService {
             }
 
         } catch (Exception e) {
-            throw new DataAccessException("Failed resigning");
+            e.printStackTrace();
+            throw new DataAccessException("Failed leaving");
         }
     }
 

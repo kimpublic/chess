@@ -1,11 +1,9 @@
 package client;
 
-import chess.ChessBoard;
-import chess.ChessGame;
+import chess.*;
 import chess.ChessGame.*;
-import chess.ChessPiece;
 import chess.ChessPiece.*;
-import chess.ChessPosition;
+import model.GameData;
 import ui.EscapeSequences;
 import websocket.commands.UserGameCommand;
 
@@ -50,11 +48,21 @@ public class Console {
             "   "
     };
 
+    private static final Map<String, ChessPiece.PieceType> promotionCommands = Map.of(
+            "Q", PieceType.QUEEN,
+            "B", PieceType.BISHOP,
+            "K", PieceType.KNIGHT,
+            "R", PieceType.ROOK
+    );
+
+    public ChessGame.TeamColor myColor;
+    public ChessGame.TeamColor currentTurnTeam;
+
     public Console(ServerFacade facade) {
         this.facade = facade;
     }
 
-    
+
 
     public void help() {
         if (!loggedIn) {
@@ -67,7 +75,8 @@ public class Console {
             System.out.println("Options:");
             System.out.println("Redraw the chess board: \"redraw\"");
             System.out.println("Leave the current game you are in: \"leave\"");
-            System.out.println("Make a move of a peace: \"move\" <START POSITION> <DESTINATION>");
+            System.out.println("Make a move of a peace: \"move\" <START POSITION> <DESTINATION> <OPTIONAL PROMOTION TYPE>");
+            System.out.println("Possible Promotion Types: q(QUEEN) / b(BISHOP) / k(KNIGHT) / r(ROOK)");
             System.out.println("Resign: \"resign\"");
             System.out.println("Highlight legal moves of a piece: \"highlight\" <PIECE LOCATION>");
             System.out.println("Print this option page: \"help\"");
@@ -165,6 +174,10 @@ public class Console {
 
     private void handleRegister(String[] parsed) {
         try {
+            if (loggedIn) {
+                System.out.println(">> You are already logged in. Logout first to register a new account.");
+                return;
+            }
             if (parsed.length != 2) {
                 System.out.println(">> Usage: \"register\" <USERNAME> <PASSWORD> <EMAIL>");
                 return;
@@ -185,6 +198,10 @@ public class Console {
 
     private void handleLogin(String[] parsed) {
         try {
+            if (loggedIn) {
+                System.out.println(">> You are already logged in. Logout first to login as another user.");
+                return;
+            }
             if (parsed.length != 2) {
                 System.out.println(">> Usage: \"login\" <USERNAME> <PASSWORD>");
                 return;
@@ -206,8 +223,12 @@ public class Console {
 
     private void handleList() {
         if (!loggedIn) {
-            System.out.println(">> You are not logged in. Check the options");
+            System.out.println(">>> You are not logged in. Check the options");
             help();
+            return;
+        }
+        if (gameMode || observeMode) {
+            System.out.println(">>> You cannot list games while inside a game room. Please leave the game first.");
             return;
         }
         try {
@@ -270,6 +291,11 @@ public class Console {
             return;
         }
 
+        if (gameMode || observeMode) {
+            System.out.println(">>> You cannot observe a game while inside a game room. Please leave the game first.");
+            return;
+        }
+
         if (parsed.length != 2) {
             System.out.println(">> Usage: \"observe\" <GAME INDEX>");
             return;
@@ -287,14 +313,13 @@ public class Console {
             return;
         }
 
-
-
         try {
 
             facade.connectWebSocket(this);
             this.perspective = "WHITE";
 
             int gameID = indexToGameID.get(gameIndex);
+            this.currentGameID = gameID;
 
             facade.sendGameCommand(new UserGameCommand(
                     UserGameCommand.CommandType.CONNECT,
@@ -302,7 +327,7 @@ public class Console {
                     currentGameID
             ));
 
-            this.currentGameID = gameID;
+
 
             observeMode = true;
 
@@ -327,6 +352,11 @@ public class Console {
             return;
         }
 
+        if (gameMode || observeMode) {
+            System.out.println(">>> You cannot create a new game while inside a game room. Please leave the game first.");
+            return;
+        }
+
         try {
             if (parsed.length != 2) {
                 System.out.println(">> Usage: \"create\" <GAME NAME>");
@@ -346,6 +376,12 @@ public class Console {
             help();
             return;
         }
+
+        if (gameMode || observeMode) {
+            System.out.println(">>> You cannot join a game while inside a game room. Please leave the game first.");
+            return;
+        }
+
         String arguments = parsed[1];
         String[] argumentsParsed = arguments.split(" ");
         if (argumentsParsed.length != 2) {
@@ -367,12 +403,14 @@ public class Console {
         }
 
         String chosenColor = argumentsParsed[1].toUpperCase();
+        myColor = ChessGame.TeamColor.valueOf(chosenColor);
         if (!chosenColor.equals("WHITE") && !chosenColor.equals("BLACK")) {
             System.out.println(">> Color should be either white or black.");
             return;
         }
         try {
             int gameID = indexToGameID.get(gameIndex);
+            this.perspective = chosenColor;
 
             facade.joinGame(gameID, chosenColor);
 
@@ -401,44 +439,102 @@ public class Console {
     }
 
     public void handleLeave() {
-        try {
-            if (gameMode || observeMode || currentGameID != null) {
+        if ((gameMode || observeMode) && currentGameID != null) {
+            // 1) 먼저 서버에 LEAVE 커맨드 전송
+            try {
                 facade.sendGameCommand(new UserGameCommand(
                         UserGameCommand.CommandType.LEAVE,
                         facade.getAuthToken(),
                         currentGameID
                 ));
-                if (gameMode) {gameMode = false;}
-                if (observeMode) {observeMode = false;}
-                currentGameID = null;
-                System.out.println(">> You left the game.");
-
-            } else {
-                System.out.println("You are not in a game room.");
+            } catch (Exception e) {
+                System.out.println(">>> Failed to send leave command: " + e.getMessage());
+                return; // 서버에 못 보냈으면 여기서 그만.
             }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+
+            if (gameMode) {gameMode = false;}
+            if (observeMode) {observeMode = false;}
+            currentGameID = null;
+            System.out.println(">> You left the game.");
+
+        } else {
+            System.out.println("You are not in a game room.");
         }
     }
 
     public void handleResign() {
         if (!gameMode || currentGameID == null) {
-            System.out.println(">> You are not in a game room.");
+            System.out.println(">>> You are not in a game room.");
+            return;
+        }
+        facade.sendGameCommand(new UserGameCommand(UserGameCommand.CommandType.RESIGN, facade.getAuthToken(), currentGameID));
+    }
+
+    public void handleMove(String[] parsed) {
+        if (!gameMode || currentGameID == null) {
+            System.out.println(">>> You are not in a game room.");
             return;
         }
 
-        facade.sendGameCommand(new UserGameCommand(UserGameCommand.CommandType.RESIGN, facade.getAuthToken(), currentGameID));
+        if (currentTurnTeam != myColor) {
+            System.out.println(">>> It's the opponent's turn.");
+            return;
+        }
 
-        gameMode = false;
-        currentGameID = null;
-        currentGame = null;
-        perspective = null;
-        System.out.println(">> You resigned the game.\n>> Now you are in the main room. Type \"help\" for options.");
+
+        String arguments = parsed[1];
+        String[] argumentsParsed = arguments.split(" ");
+
+        if (argumentsParsed.length < 2 || argumentsParsed.length > 3) {
+            System.out.println(">>> Usage: \"move\" <START POSITION> <DESTINATION> <OPTIONAL PROMOTION TYPE>");
+            System.out.println(">>> Example: \"move\" 2a 3a Q(if applied)");
+            return;
+        }
+
+        String start = argumentsParsed[0].toUpperCase();
+        String end = argumentsParsed[1].toUpperCase();
+
+        if (!start.matches("^[1-8][A-H]$") || !end.matches("^[1-8][A-H]$")) {
+            System.out.println(">>> Invalid positions. Rows: 1–8, Columns: a–h");
+            return;
+        }
+
+        int startRow = Character.getNumericValue(start.charAt(0));
+        int startCol = start.charAt(1) - 'A' + 1;
+        ChessPosition startPosition = new ChessPosition(startRow, startCol);
+
+        int endRow = Character.getNumericValue(end.charAt(0));
+        int endCol = end.charAt(1) - 'A' + 1;
+        ChessPosition endPosition = new ChessPosition(endRow, endCol);
+
+        PieceType promotionType = null;
+
+        if (argumentsParsed.length == 3) {
+            ChessPiece piece = currentGame.getBoard().getPiece(startPosition);
+            boolean onLastRowCheck = piece.getTeamColor() == TeamColor.WHITE ? endRow == 8 : endRow == 1;
+            if (!onLastRowCheck || piece.getPieceType() != PieceType.PAWN) {
+                System.out.println(">>> The piece is not eligible for promotion.");
+                return;
+            } else if (!promotionCommands.containsKey(argumentsParsed[2].toUpperCase())) {
+                System.out.println(">>> Check your promotion type. ");
+                System.out.println(">>> Possible Promotion Types: q(QUEEN) / b(BISHOP) / k(KNIGHT) / r(ROOK)");
+            } else {
+                promotionType = promotionCommands.get(argumentsParsed[2].toUpperCase());
+            }
+        }
+        ChessMove move = new ChessMove(startPosition, endPosition, promotionType);
+
+        try {
+            facade.sendGameCommand(new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, facade.getAuthToken(), currentGameID, move));
+        } catch (Exception e) {
+            System.out.println(">>> Failed to make move: " + e.getMessage());
+        }
     }
 
     public void onLoadGame(ChessGame game) {
         this.currentGame = game;
         drawBoard(game, perspective);
+
         if (joinLatch != null) {
             joinLatch.countDown();
         }
@@ -512,7 +608,8 @@ public class Console {
                 }
 
                 case "move": {
-
+                    handleMove(parsed);
+                    break;
                 }
 
                 case "resign": {
@@ -521,7 +618,8 @@ public class Console {
                 }
 
                 case "highlight": {
-
+                    hnadleHighlight(parsed);
+                    break;
                 }
 
 

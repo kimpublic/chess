@@ -5,6 +5,8 @@ package server;
 // 메시지 수신 시 `UserGameCommand` 파싱 → 처리 → `ServerMessage` 생성 후 다시 브로드캐스트
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import model.GameData;
@@ -93,26 +95,45 @@ public class WebSocketServer {
     }
 
     private void handleMove(Session session, UserGameCommand command) throws DataAccessException {
+        int gameID = command.getGameID();
+        ChessMove move = command.getMove();
+
         try {
-            gameService.makeMove(command.getGameID(), command.getMove());
-            ChessGame updatedGame = gameService.getGame(command.getGameID()).game();
+            gameService.makeMove(gameID, move);
+            ChessGame updatedGame = gameService.getGame(gameID).game();
             broadcastToAll(currentGameID, new LoadGameMessage(updatedGame));
             broadcastToOthers(session, currentGameID, new NotificationMessage(command.getMove().getStartPosition() + "moved to " + command.getMove().getEndPosition()));
+
+            ChessGame.TeamColor nextTurn = updatedGame.getTeamTurn();
+
+            if (updatedGame.isInCheckmate(nextTurn)) {
+                broadcastToAll(currentGameID, new NotificationMessage(nextTurn + " is checkmated. Game over."));
+            } else if (updatedGame.isInStalemate(nextTurn)) {
+                broadcastToAll(currentGameID, new NotificationMessage(nextTurn + "Stalemate. Game drawn."));
+            } else if (updatedGame.isInCheck(nextTurn)) {
+                broadcastToAll(currentGameID, new NotificationMessage(nextTurn + " is in check."));
+            }
+
+        } catch (InvalidMoveException e) {
+            send(session, new ErrorMessage("Error: Invalid move"));
         } catch (IllegalStateException e) {
             send(session, new ErrorMessage("Error: " + e.getMessage()));
+        } catch (DataAccessException e) {
+            send(session, new ErrorMessage("Error: server failed updating game." + e.getMessage()));
+            logger.log(Level.SEVERE, "Failed to persist move", e);
         }
     }
 
     private void handleLeave(Session session, UserGameCommand command) throws DataAccessException {
-        gameService.leave(command.getAuthToken(), command.getGameID());
-        gameSessions.getOrDefault(currentGameID, Set.of()).remove(session);
-        broadcastToOthers(session, currentGameID, new NotificationMessage(userService.getUsername(command.getAuthToken()) + " has left the game."));
+        int gameID = command.getGameID();
+        gameService.leave(command.getAuthToken(), gameID);
+        gameSessions.getOrDefault(gameID, Set.of()).remove(session);
+        broadcastToOthers(session, gameID, new NotificationMessage(">>> " + userService.getUsername(command.getAuthToken()) + " has left the game."));
     }
 
     private void handleResign(Session session, UserGameCommand command) throws DataAccessException {
         gameService.resign(command.getAuthToken(), command.getGameID());
-        gameSessions.getOrDefault(currentGameID, Set.of()).remove(session);
-        broadcastToAll(currentGameID, new NotificationMessage(userService.getUsername(command.getAuthToken()) + " has resigned. Game ended."));
+        broadcastToAll(currentGameID, new NotificationMessage(">>> " + userService.getUsername(command.getAuthToken()) + " has resigned. Game ended.\n>>> You can leave this room by typing \"leave\"."));
     }
 
     private void send(Session session, Object message) {
@@ -139,7 +160,7 @@ public class WebSocketServer {
     }
 
     @OnWebSocketClose
-    public void connectionClosed(Session session, int statusCode, String reason) {
+    public void onClose(Session session, int statusCode, String reason) {
         Integer gameID = sessionGameMap.remove(session);
         String  token  = sessionTokenMap.remove(session);
 
@@ -158,7 +179,7 @@ public class WebSocketServer {
     }
 
     @OnWebSocketError
-    public void websocketError(Throwable e) {
+    public void onError(Throwable e) {
         System.out.println("WebSocket error: " + e.getMessage());
         logger.log(Level.SEVERE, "WebSocket error", e);
     }
