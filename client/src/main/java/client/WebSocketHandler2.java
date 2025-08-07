@@ -59,22 +59,20 @@ public class WebSocketHandler2 {
         }
     }
 
-    """@SuppressWarnings("unused")
-    @OnClose
-    public void onClose(Session session, CloseReason reason) {
-        System.out.println(">>> WebSocket closed: " + reason);
-        console.handleLeave();
-        System.out.print(">>> ");
+    //@SuppressWarnings("unused")
+    //@OnClose
+    //public void onClose(Session session, CloseReason reason) {
+    //    System.out.println(">>> WebSocket closed: " + reason);
+    //    console.handleLeave();
+    //    System.out.print(">>> ");
+    //}
 
-    }
-
-    @SuppressWarnings("unused")
-    @OnError
-    public void onError(Session session, Throwable e) {
-        System.out.println(">>> WebSocket error: " + e.getMessage());
-        LOGGER.log(Level.SEVERE, "WebSocket error", e);
-    }
-    """
+    //@SuppressWarnings("unused")
+    //@OnError
+    //public void onError(Session session, Throwable e) {
+    //    System.out.println(">>> WebSocket error: " + e.getMessage());
+    //    LOGGER.log(Level.SEVERE, "WebSocket error", e);
+    //}
 
     public boolean isOpen() {
         return session != null && session.isOpen();
